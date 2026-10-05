@@ -17,7 +17,7 @@ const DEFAULT_CONFIG = {
   maxDaysAhead: 14,      // hasta cuántos días vista se puede encargar
   // Ventana de RECOGIDA por día (puede ser más corta que la apertura del forno).
   schedule: {
-    mon: null,
+    mon: { from: "09:00", to: "20:00" },
     tue: { from: "09:00", to: "20:00" },
     wed: { from: "09:00", to: "20:00" },
     thu: { from: "09:00", to: "20:00" },
@@ -31,30 +31,32 @@ const DEFAULT_CONFIG = {
 };
 
 // Horario de apertura al público (solo informativo).
+// Desde que "abrimos los lunes" el lunes sigue el horario de entre semana: confírmalo con el forno.
 const OPENING_HOURS = [
-  ["Lunes", "Cerrado"], ["Martes", "8:30 – 20:00"], ["Miércoles", "8:30 – 20:00"], ["Jueves", "8:30 – 20:00"],
-  ["Viernes", "8:30 – 20:00"], ["Sábado", "8:30 – 15:00"], ["Domingo", "9:00 – 14:00"]
+  ["Lunes", "8:30 a 20:00"], ["Martes", "8:30 a 20:00"], ["Miércoles", "8:30 a 20:00"], ["Jueves", "8:30 a 20:00"],
+  ["Viernes", "8:30 a 20:00"], ["Sábado", "8:30 a 15:00"], ["Domingo", "9:00 a 14:00"]
 ];
 
 const CATEGORIES = [
-  { id: "pane",     name: "Il pane",          note: "Masa madre, harinas ecológicas y muchas horas de reposo." },
-  { id: "focaccia", name: "Focaccia",         note: "Alta, aireada y crujiente por abajo. Con buen aceite de oliva." },
-  { id: "teglia",   name: "Pizza in teglia",  note: "Pizza romana en bandeja: por porción o la bandeja entera para compartir." },
-  { id: "dolci",    name: "I dolci",          note: "Buns de canela y cardamomo, recién horneados cada mañana." }
+  { id: "pane",     name: "Pan",                note: "Masa madre y muchas horas de reposo." },
+  { id: "focaccia", name: "Focaccia y pizza",   note: "En bandeja, al estilo romano. Por porción o entera." },
+  { id: "dolci",    name: "Dulce",              note: "Lo que sale del horno por la mañana." },
+  { id: "stagione", name: "De temporada",       note: "Cuando toca." }
 ];
 
-// lead = horas mínimas de antelación. art = ilustración. img = ruta a foto real (opcional, p. ej. "img/focaccia.jpg").
+// lead = horas mínimas de antelación. img = foto (opcional). hidden = no se muestra en la web.
 const DEFAULT_CATALOG = [
-  { id: "pagnotta",       cat: "pane",     name: "Pagnotta",                it: "di lievito madre",       desc: "Nuestro pan de masa madre: corteza tostada y miga abierta. Pieza de ~800 g.", price: 6.50, unit: "pieza",   lead: 12, art: "loaf",     tone: "sole" },
-  { id: "mezza",          cat: "pane",     name: "Mezza pagnotta",          it: "metà, stessa anima",     desc: "Media pieza del mismo pan, ~400 g. Ideal para uno o dos.",                    price: 3.60, unit: "pieza",   lead: 12, art: "loaf",     tone: "cielo" },
-  { id: "foc-porzione",   cat: "focaccia", name: "Focaccia classica",       it: "rosmarino e sale",       desc: "Porción generosa con romero, aceite de oliva virgen extra y sal en escamas.", price: 3.20, unit: "porción", lead: 3,  art: "focaccia", tone: "pistacchio" },
-  { id: "foc-teglia",     cat: "focaccia", name: "Focaccia · bandeja",      it: "per tutta la tavola",    desc: "La bandeja entera de focaccia clásica, unas 8 porciones. Para fiestas, comidas y vermuts.", price: 24.00, unit: "bandeja", lead: 24, art: "focaccia", tone: "sole" },
-  { id: "foc-giorno",     cat: "focaccia", name: "Focaccia del giorno",     it: "cambia con la stagione", desc: "La focaccia con toppings de temporada que tengamos ese día. Porción.",       price: 3.80, unit: "porción", lead: 3,  art: "focaccia2", tone: "rosa" },
-  { id: "margherita",     cat: "teglia",   name: "Margherita",              it: "pomodoro, fior di latte",desc: "Tomate, mozzarella fior di latte y albahaca fresca. Porción.",               price: 3.50, unit: "porción", lead: 3,  art: "pizza",    tone: "cielo" },
-  { id: "patate",         cat: "teglia",   name: "Patate e rosmarino",      it: "la bianca romana",       desc: "Base blanca, patata en láminas finas, romero y pimienta. Porción.",          price: 3.50, unit: "porción", lead: 3,  art: "pizza-patate", tone: "pistacchio" },
-  { id: "mortadella",     cat: "teglia",   name: "Mortadella e pistacchio", it: "il classico bolognese",  desc: "Mortadela, stracciatella y pistacho tostado. Porción.",                     price: 4.50, unit: "porción", lead: 3,  art: "pizza-morta", tone: "rosa" },
-  { id: "teglia-intera",  cat: "teglia",   name: "Teglia intera",           it: "mezza e mezza",          desc: "Bandeja entera de pizza romana (≈ 8 porciones), de uno o dos sabores. Indícalos en las notas.", price: 28.00, unit: "bandeja", lead: 24, art: "pizza",    tone: "sole" },
-  { id: "cinnamon",       cat: "dolci",    name: "Cinnamon bun",            it: "cannella e burro",       desc: "Masa brioche enrollada con mantequilla, canela y azúcar moreno.",           price: 3.20, unit: "unidad",  lead: 3,  art: "bun",      tone: "rosa" },
-  { id: "cardamom",       cat: "dolci",    name: "Cardamom bun",            it: "nodo al cardamomo",      desc: "El nudo nórdico con cardamomo recién molido y azúcar perlado.",             price: 3.20, unit: "unidad",  lead: 3,  art: "knot",     tone: "cielo" },
-  { id: "box-buns",       cat: "dolci",    name: "Box de 6 buns",           it: "per la colazione",       desc: "Seis buns a elegir entre canela y cardamomo (dinos el reparto en las notas).", price: 18.00, unit: "caja",   lead: 12, art: "box",      tone: "bomba" }
+  { id: "pagnotta",      cat: "pane",     name: "Pagnotta de masa madre",  desc: "Corteza tostada y miga abierta. Unos 800 g.",                     price: 6.50,  unit: "pieza",   lead: 12 },
+  { id: "mezza",         cat: "pane",     name: "Media pagnotta",          desc: "El mismo pan, unos 400 g.",                                       price: 3.60,  unit: "pieza",   lead: 12 },
+  { id: "foc-porzione",  cat: "focaccia", name: "Focaccia",                desc: "Romero, aceite de oliva y sal en escamas.",                       price: 3.20,  unit: "porción", lead: 3 },
+  { id: "foc-teglia",    cat: "focaccia", name: "Focaccia, bandeja entera",desc: "Unas 8 porciones. Para comidas, fiestas y vermuts.",              price: 24.00, unit: "bandeja", lead: 24 },
+  { id: "margherita",    cat: "focaccia", name: "Pizza margherita",        desc: "Tomate, fior di latte y albahaca.",                               price: 3.50,  unit: "porción", lead: 3 },
+  { id: "patate",        cat: "focaccia", name: "Pizza de patata y romero",desc: "Base blanca, patata fina, romero y pimienta.",                    price: 3.50,  unit: "porción", lead: 3 },
+  { id: "mortadella",    cat: "focaccia", name: "Pizza de mortadela",      desc: "Mortadela, stracciatella y pistacho.",                            price: 4.50,  unit: "porción", lead: 3 },
+  { id: "teglia-intera", cat: "focaccia", name: "Pizza, bandeja entera",   desc: "Unas 8 porciones, de uno o dos sabores. Dinos cuáles en las notas.", price: 28.00, unit: "bandeja", lead: 24 },
+  { id: "cardamom",      cat: "dolci",    name: "Nudo de cardamomo",       desc: "Masa brioche anudada con cardamomo recién molido.",               price: 3.20,  unit: "unidad",  lead: 3,  img: "img/nudos.jpg" },
+  { id: "cinnamon",      cat: "dolci",    name: "Bun de canela",           desc: "Enrollado con mantequilla y canela, con azúcar glas por encima.", price: 3.20,  unit: "unidad",  lead: 3,  img: "img/bun.jpg" },
+  { id: "crostata",      cat: "dolci",    name: "Crostata",                desc: "Tartaleta de masa quebrada con mermelada.",                       price: 3.80,  unit: "unidad",  lead: 3,  img: "img/crostata.jpg" },
+  { id: "box-buns",      cat: "dolci",    name: "Caja de 6 buns",          desc: "Canela y cardamomo, como prefieras. Dinos el reparto en las notas.", price: 18.00, unit: "caja", lead: 12 },
+  { id: "coca-sant-joan",cat: "stagione", name: "Coca de Sant Joan",       desc: "Con piñones de aquí. Solo en junio.",                             price: 22.00, unit: "pieza",   lead: 48, img: "img/coca.jpg", hidden: true }
 ];

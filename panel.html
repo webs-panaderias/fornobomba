@@ -3,19 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#1F1A14">
+<meta name="theme-color" content="#6A0E0B">
 <meta name="robots" content="noindex">
 <title>Forno Bomba — Panel de encargos</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="icon" href="img/logo.png">
 <style>
+  @font-face{ font-family:"Titan One"; src:url(fonts/titan-one.woff2) format("woff2"); font-display:swap; }
+  @font-face{ font-family:"Jost"; src:url(fonts/jost.woff2) format("woff2"); font-weight:100 900; font-display:swap; }
+  /* Misma paleta que la web: piedra y rojo del logo, granate de la pared del obrador. */
   :root{
-    --crema:#F5EEE1; --paper:#FFFBF4; --ink:#1F1A14; --muted:#6B6155; --line:#E3D8C6;
-    --bomba:#E5432B; --bomba-deep:#B9301C; --sole:#F4B42E; --pistacchio:#A9C98A; --cielo:#A9CFE6; --rosa:#F4BBAE;
+    --crema:#E6E0D0; --paper:#F3EFE5; --ink:#2B211A; --muted:#6F6352; --line:rgba(43,33,26,.16);
+    --bomba:#EE3325; --bomba-deep:#C9281C; --granate:#6A0E0B; --sole:#E2B04A; --pistacchio:#8FA66B; --cielo:#A9CFE6; --rosa:#F4BBAE;
     --gutter:16px;
-    --display:'Bricolage Grotesque', 'Arial Black', system-ui, sans-serif;
-    --serif:'Instrument Serif', Georgia, serif;
+    --display:"Jost", "Futura", system-ui, sans-serif;
+    --serif:"Titan One", "Arial Black", sans-serif;
   }
   *{ box-sizing:border-box; margin:0; padding:0; }
   [hidden]{ display:none !important; }
@@ -26,7 +27,7 @@
   .wrap{ max-width:1200px; margin:0 auto; padding:0 var(--gutter); }
   .num{ font-variant-numeric:tabular-nums; }
   .btn{ display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1.5px solid var(--ink); background:var(--ink); color:var(--paper);
-        font-weight:700; padding:10px 16px; border-radius:999px; line-height:1; text-decoration:none; white-space:nowrap; }
+        font-weight:700; padding:10px 16px; border-radius:6px; line-height:1; text-decoration:none; white-space:nowrap; }
   .btn.light{ background:var(--paper); color:var(--ink); }
   .btn.red{ background:var(--bomba); color:#fff; }
   .btn.small{ padding:8px 12px; font-size:13.5px; }
@@ -38,19 +39,21 @@
 
   /* Login */
   .login{ min-height:100vh; display:grid; place-items:center; padding:20px var(--gutter); }
-  .login form{ width:min(420px, 100%); background:var(--paper); border:1.5px solid var(--ink); border-radius:24px; padding:24px; display:grid; gap:14px; }
-  .login h1{ font-weight:800; font-size:30px; letter-spacing:-.02em; line-height:1; }
-  .login h1 span{ font-family:var(--serif); font-style:italic; font-weight:400; color:var(--bomba); }
+  .login form{ width:min(420px, 100%); background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; padding:24px; display:grid; gap:14px; }
+  .login h1{ line-height:.95; text-align:center; }
+  .login h1 span{ display:block; font-family:var(--serif); font-weight:400; color:var(--bomba); font-size:44px; }
+  .login h1 small{ display:block; font-size:12px; letter-spacing:.32em; color:var(--bomba); }
   .login label{ display:grid; gap:6px; font-weight:700; font-size:14px; }
   .login .err{ color:var(--bomba-deep); font-weight:600; font-size:14px; min-height:1em; }
   .login small{ color:var(--muted); font-weight:500; }
 
   /* Cabecera */
-  header{ position:sticky; top:0; z-index:20; background:var(--ink); color:var(--paper); }
+  header{ position:sticky; top:0; z-index:20; background:var(--granate); color:var(--paper); }
   header .wrap{ display:flex; align-items:center; gap:10px; min-height:60px; flex-wrap:wrap; padding-block:8px; }
   header .brand{ font-weight:800; font-size:18px; text-transform:uppercase; letter-spacing:-.01em; white-space:nowrap; }
-  header .brand span{ font-family:var(--serif); font-style:italic; text-transform:none; font-weight:400; color:var(--sole); margin-left:4px; }
-  .tabs{ display:flex; gap:4px; background:#3a332a; border-radius:999px; padding:4px; }
+  header .brand span{ font-weight:500; text-transform:none; color:#F0B7AE; margin-left:6px; font-size:15px; }
+  header .brand b{ font-family:var(--serif); font-weight:400; color:var(--paper); font-size:20px; }
+  .tabs{ display:flex; gap:4px; background:rgba(0,0,0,.25); border-radius:999px; padding:4px; }
   .tabs button{ border:0; background:none; color:#d9cdbb; font-weight:700; padding:8px 14px; border-radius:999px; }
   .tabs button[aria-selected="true"]{ background:var(--paper); color:var(--ink); }
   header .right{ margin-left:auto; display:flex; gap:8px; align-items:center; }
@@ -59,7 +62,7 @@
   .pause-strip{ display:none; background:var(--sole); padding:8px var(--gutter); text-align:center; font-weight:700; border-bottom:1.5px solid var(--ink); }
   .pause-strip.show{ display:block; }
 
-  main{ padding:20px 0 60px; }
+  main.wrap{ padding-top:22px; padding-bottom:60px; }
   .view{ display:none; }
   .view.on{ display:block; }
 
@@ -73,13 +76,13 @@
 
   .kpis{ display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:16px; }
   @media (min-width:700px){ .kpis{ grid-template-columns:repeat(4, 1fr); } }
-  .kpi{ background:var(--paper); border:1.5px solid var(--ink); border-radius:18px; padding:12px 14px; }
+  .kpi{ background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; padding:12px 14px; }
   .kpi span{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
   .kpi b{ display:block; font-size:28px; font-weight:800; line-height:1.1; font-variant-numeric:tabular-nums; }
 
   .cols{ display:grid; gap:16px; align-items:start; }
   @media (min-width:960px){ .cols{ grid-template-columns:320px 1fr; } .prod{ position:sticky; top:84px; } }
-  .box{ background:var(--paper); border:1.5px solid var(--ink); border-radius:20px; padding:16px; }
+  .box{ background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; padding:16px; }
   .box h3{ font-weight:800; font-size:20px; letter-spacing:-.01em; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
   .box h3 .btn{ margin-left:auto; }
   .prod ul{ list-style:none; }
@@ -95,7 +98,7 @@
   .slot-h.now b::after{ content:" · ahora"; color:var(--bomba-deep); }
   .orders{ display:grid; gap:10px; }
   @media (min-width:700px){ .orders{ grid-template-columns:repeat(2, 1fr); } }
-  .order{ background:var(--paper); border:1.5px solid var(--ink); border-radius:18px; padding:14px; display:grid; gap:8px; border-left-width:8px; }
+  .order{ background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; padding:14px; display:grid; gap:8px; border-left-width:8px; }
   .order[data-status="Pendiente"]{ border-left-color:var(--sole); }
   .order[data-status="Preparado"]{ border-left-color:var(--pistacchio); }
   .order[data-status="Recogido"]{ opacity:.55; border-left-color:var(--ink); }
@@ -108,8 +111,8 @@
   .order .notes{ background:#FFF3C9; border-radius:10px; padding:8px 10px; font-size:14px; }
   .order .f{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
   .order .f .total{ flex-basis:100%; font-weight:800; font-variant-numeric:tabular-nums; }
-  .st{ border:1.5px solid var(--ink); background:var(--paper); border-radius:999px; padding:6px 10px; font-size:13px; font-weight:700; }
-  .st[aria-pressed="true"]{ background:var(--ink); color:var(--paper); }
+  .st{ border:1.5px solid var(--ink); background:var(--paper); border-radius:6px; padding:6px 10px; font-size:13px; font-weight:700; }
+  .st[aria-pressed="true"]{ background:var(--bomba); border-color:var(--bomba); color:var(--paper); }
   .empty{ text-align:center; padding:40px 16px; color:var(--muted); }
   .empty b{ display:block; font-size:22px; color:var(--ink); margin-bottom:4px; }
   .toolbar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
@@ -154,8 +157,8 @@
 <!-- ACCESO -->
 <div class="login" id="loginView">
   <form id="loginForm">
-    <h1>Forno Bomba <span>panel</span></h1>
-    <p class="muted">Encargos del día, producción y configuración de la web.</p>
+    <h1><small>FORNO</small><span>BOMBA</span></h1>
+    <p class="muted" style="text-align:center">Encargos del día, lo que hay que hornear y la configuración de la web.</p>
     <label id="urlRow">URL de Apps Script
       <input type="url" id="lUrl" placeholder="https://script.google.com/macros/s/…/exec" required>
       <small>Solo hace falta la primera vez en este dispositivo.</small>
@@ -172,7 +175,7 @@
 <div id="app" hidden>
   <header>
     <div class="wrap">
-      <div class="brand">Forno Bomba<span>panel</span></div>
+      <div class="brand"><b>BOMBA</b><span>panel de encargos</span></div>
       <div class="tabs" role="tablist">
         <button role="tab" aria-selected="true" data-tab="orders">Encargos</button>
         <button role="tab" aria-selected="false" data-tab="config">Configuración</button>
