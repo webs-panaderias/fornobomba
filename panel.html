@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#6A0E0B">
+<meta name="theme-color" content="#2B211A">
 <meta name="robots" content="noindex">
 <title>Forno Bomba — Panel de encargos</title>
 <link rel="icon" href="img/logo.png">
 <style>
   @font-face{ font-family:"Titan One"; src:url(fonts/titan-one.woff2) format("woff2"); font-display:swap; }
   @font-face{ font-family:"Jost"; src:url(fonts/jost.woff2) format("woff2"); font-weight:100 900; font-display:swap; }
-  /* Misma paleta que la web: piedra y rojo del logo, granate de la pared del obrador. */
+  /* Misma paleta que la web: piedra y rojo del logo, tinta para la cabecera. */
   :root{
     --crema:#E6E0D0; --paper:#F3EFE5; --ink:#2B211A; --muted:#6F6352; --line:rgba(43,33,26,.16);
-    --bomba:#EE3325; --bomba-deep:#C9281C; --granate:#6A0E0B; --sole:#E2B04A; --pistacchio:#8FA66B; --cielo:#A9CFE6; --rosa:#F4BBAE;
+    --bomba:#EE3325; --bomba-deep:#C9281C; --sole:#E2B04A; --pistacchio:#8FA66B; --cielo:#A9CFE6; --rosa:#F4BBAE;
     --gutter:16px;
     --display:"Jost", "Futura", system-ui, sans-serif;
     --serif:"Titan One", "Arial Black", sans-serif;
@@ -48,18 +48,18 @@
   .login small{ color:var(--muted); font-weight:500; }
 
   /* Cabecera */
-  header{ position:sticky; top:0; z-index:20; background:var(--granate); color:var(--paper); }
+  header{ position:sticky; top:0; z-index:20; background:var(--ink); color:var(--paper); }
   header .wrap{ display:flex; align-items:center; gap:10px; min-height:60px; flex-wrap:wrap; padding-block:8px; }
   header .brand{ font-weight:800; font-size:18px; text-transform:uppercase; letter-spacing:-.01em; white-space:nowrap; }
   header .brand span{ font-weight:500; text-transform:none; color:#F0B7AE; margin-left:6px; font-size:15px; }
   header .brand b{ font-family:var(--serif); font-weight:400; color:var(--paper); font-size:20px; }
-  .tabs{ display:flex; gap:4px; background:rgba(0,0,0,.25); border-radius:999px; padding:4px; }
+  .tabs{ display:flex; gap:4px; background:rgba(255,255,255,.1); border-radius:999px; padding:4px; }
   .tabs button{ border:0; background:none; color:#d9cdbb; font-weight:700; padding:8px 14px; border-radius:999px; }
   .tabs button[aria-selected="true"]{ background:var(--paper); color:var(--ink); }
   header .right{ margin-left:auto; display:flex; gap:8px; align-items:center; }
   .pause-btn{ border:1.5px solid var(--paper); background:none; color:var(--paper); }
-  .pause-btn.on{ background:var(--sole); color:var(--ink); border-color:var(--sole); }
-  .pause-strip{ display:none; background:var(--sole); padding:8px var(--gutter); text-align:center; font-weight:700; border-bottom:1.5px solid var(--ink); }
+  .pause-btn.on{ background:var(--bomba); color:var(--paper); border-color:var(--bomba); }
+  .pause-strip{ display:none; background:var(--bomba); color:var(--paper); padding:10px var(--gutter); text-align:center; font-weight:600; }
   .pause-strip.show{ display:block; }
 
   main.wrap{ padding-top:22px; padding-bottom:60px; }
@@ -77,7 +77,7 @@
   .kpis{ display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:16px; }
   @media (min-width:700px){ .kpis{ grid-template-columns:repeat(4, 1fr); } }
   .kpi{ background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; padding:12px 14px; }
-  .kpi span{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  .kpi span{ font-size:15px; font-weight:500; color:var(--muted); }
   .kpi b{ display:block; font-size:28px; font-weight:800; line-height:1.1; font-variant-numeric:tabular-nums; }
 
   .cols{ display:grid; gap:16px; align-items:start; }
@@ -134,7 +134,7 @@
   .chip{ display:inline-flex; gap:6px; align-items:center; border:1.5px solid var(--ink); border-radius:999px; padding:4px 6px 4px 12px; background:var(--crema); font-weight:600; font-size:14px; }
   .chip button{ width:24px; height:24px; border-radius:50%; border:0; background:var(--ink); color:var(--paper); font-size:14px; line-height:1; }
   .cat-table{ width:100%; border-collapse:collapse; font-size:14px; }
-  .cat-table th{ text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:6px 4px; }
+  .cat-table th{ text-align:left; font-size:14px; font-weight:500; color:var(--muted); padding:6px 4px; }
   .cat-table td{ padding:6px 4px; border-top:1px dashed var(--line); vertical-align:middle; }
   .cat-table input[type=number]{ width:90px; padding:8px; }
   .cat-table td.c{ text-align:center; }
@@ -571,10 +571,19 @@ function render(){
   }).join("");
 }
 
+// Solo para leerlo mejor: 677123456 -> 677 123 456 (34677123456 -> +34 677 123 456).
+// El número se guarda sin espacios, que es lo que piden tel: y wa.me.
+function prettyPhone(digits){
+  const d = String(digits || "").replace(/\D/g, "");
+  if(/^\d{9}$/.test(d)) return d.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3");
+  if(/^34\d{9}$/.test(d)) return "+34 " + d.slice(2).replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3");
+  return digits || "";
+}
+
 function orderCard(o){
   const phone = String(o.phone || "").replace(/[^\d+]/g, "");
   return `<article class="order" data-status="${esc(o.status)}">
-    <div class="h"><b>#${esc(o.orderNumber)}</b><strong>${esc(o.name)}</strong>${phone ? `<a href="tel:${esc(phone)}">${esc(o.phone)}</a>` : ""}</div>
+    <div class="h"><b>#${esc(o.orderNumber)}</b><strong>${esc(o.name)}</strong>${phone ? `<a href="tel:${esc(phone)}">${esc(prettyPhone(o.phone))}</a>` : ""}</div>
     <pre>${esc(o.items)}</pre>
     ${o.notes ? `<div class="notes">📝 ${esc(o.notes)}</div>` : ""}
     <div class="f"><span class="total">${fmt(String(o.total).replace(",", "."))}</span>

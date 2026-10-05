@@ -15,13 +15,12 @@
 
   /* Paleta sacada del logo y del local:
      piedra = fondo del logo, rojo = letras del logo y del rótulo,
-     granate = la pared del obrador, papel = el papel de envolver. */
+     papel = el papel de envolver. */
   :root{
     --piedra:#E6E0D0;
     --papel:#F3EFE5;
     --rojo:#EE3325;
     --rojo-hondo:#C9281C;
-    --granate:#6A0E0B;
     --tinta:#2B211A;
     --gris:#6F6352;
     --linea:rgba(43,33,26,.16);
@@ -71,7 +70,7 @@
   .bolsa output{ background:var(--rojo); border-radius:4px; min-width:22px; padding:2px 6px; font-size:13px; text-align:center; }
   .top.scrolled{ box-shadow:0 1px 0 var(--linea); }
 
-  .pausa{ display:none; background:var(--granate); color:var(--papel); padding:12px var(--gutter); text-align:center; font-weight:500; }
+  .pausa{ display:none; background:var(--rojo); color:var(--papel); padding:12px var(--gutter); text-align:center; font-weight:600; }
   .pausa.show{ display:block; }
 
   /* ---------- PORTADA ---------- */
@@ -145,6 +144,7 @@
   .plato .ctl{ grid-column:3; justify-self:end; }
   .anadir{ background:none; border:1.5px solid var(--rojo); color:var(--rojo-hondo); border-radius:6px; font-weight:600; font-size:15px; padding:7px 12px; }
   .anadir:hover{ background:var(--rojo); color:var(--papel); }
+  .anadir:disabled{ opacity:.4; cursor:not-allowed; background:none; color:var(--rojo-hondo); }
   .agotado{ font-size:14px; color:var(--gris); }
   .contador{ display:inline-flex; align-items:center; background:var(--rojo); color:var(--papel); border-radius:6px; }
   .contador button{ width:36px; height:36px; border:0; background:none; color:inherit; font-size:20px; line-height:1; }
@@ -260,7 +260,7 @@
   .recap{ background:var(--piedra); padding:14px 16px; margin-bottom:18px; font-size:16px; }
   .recap b{ display:block; font-size:19px; font-weight:600; }
   .recap button{ background:none; border:0; text-decoration:underline; text-underline-offset:3px; font-size:15px; color:var(--gris); padding:0; margin-top:6px; }
-  .form-error{ display:none; margin:0 0 12px; background:var(--granate); color:var(--papel); padding:10px 12px; font-size:15px; border-radius:6px; }
+  .form-error{ display:none; margin:0 0 12px; background:var(--rojo-hondo); color:var(--papel); padding:10px 12px; font-size:15px; border-radius:6px; }
   .form-error.show{ display:block; }
   #formError.show{ margin-top:14px; }
 
@@ -497,6 +497,8 @@ function renderCatalog(){
 function controlHtml(item){
   const qty = cart[item.id] || 0;
   if(item.soldOut) return `<span class="agotado">Agotado</span>`;
+  // En pausa no se puede añadir nada; lo ya añadido se puede quitar desde la cesta.
+  if(config.pause.active) return `<button class="anadir" type="button" disabled aria-label="${esc(item.name)}: encargos en pausa">Añadir</button>`;
   if(qty > 0) return `<div class="contador" role="group" aria-label="Cantidad de ${esc(item.name)}">
       <button type="button" data-dec="${item.id}" aria-label="Quitar uno">−</button>
       <output aria-live="polite">${qty}</output>
@@ -523,6 +525,7 @@ function refreshCard(id){
 function changeQty(id, delta){
   const item = itemById(id);
   if(!item || item.soldOut) return;
+  if(delta > 0 && config.pause.active) return;
   const q = Math.max(0, Math.min(50, (cart[id] || 0) + delta));
   if(q === 0) delete cart[id]; else cart[id] = q;
   saveCart();
@@ -919,6 +922,7 @@ function renderPause(){
   const b = $("#pauseBanner");
   b.textContent = config.pause.active ? (config.pause.message || "Ahora mismo no aceptamos encargos online.") : "";
   b.classList.toggle("show", !!config.pause.active);
+  renderCatalog();
   updateFoot();
 }
 async function loadRemoteConfig(){
