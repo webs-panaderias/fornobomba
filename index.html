@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#E5432B">
+<title>Forno Bomba — Encargos online</title>
+<meta name="description" content="Forno italiano en Sants, Barcelona. Encarga pan de masa madre, focaccia, pizza in teglia y buns, y recógelo en el forno el día y a la hora que elijas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --crema:#F5EEE1;
+    --paper:#FFFBF4;
+    --ink:#1F1A14;
+    --muted:#6B6155;
+    --line:#E3D8C6;
+    --bomba:#E5432B;
+    --bomba-deep:#B9301C;
+    --sole:#F4B42E;
+    --pistacchio:#A9C98A;
+    --cielo:#A9CFE6;
+    --rosa:#F4BBAE;
+    --crosta:#C98B4B;
+    --ok:#2F6B3A;
+    --radius:22px;
+    --gutter:16px;
+    --display:'Bricolage Grotesque', 'Arial Black', system-ui, sans-serif;
+    --serif:'Instrument Serif', Georgia, 'Times New Roman', serif;
+    --text:'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ -webkit-text-size-adjust:100%; scroll-behavior:smooth; scroll-padding-top:72px; }
+  body{
+    background:var(--crema);
+    color:var(--ink);
+    font-family:var(--text);
+    font-size:16px;
+    line-height:1.5;
+    font-variation-settings:"opsz" 14;
+    overflow-x:hidden;
+  }
+  img{ max-width:100%; display:block; }
+  a{ color:inherit; }
+  button, input, textarea{ font:inherit; color:inherit; }
+  button{ cursor:pointer; }
+  :focus-visible{ outline:3px solid var(--ink); outline-offset:3px; border-radius:6px; }
+  .wrap{ max-width:1160px; margin:0 auto; padding:0 var(--gutter); }
+  .serif{ font-family:var(--serif); font-style:italic; font-weight:400; letter-spacing:0; }
+  .num{ font-variant-numeric:tabular-nums; }
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+  }
+
+  /* ---------- CABECERA ---------- */
+  .top{
+    position:sticky; top:0; z-index:40;
+    background:color-mix(in srgb, var(--crema) 92%, transparent);
+    backdrop-filter:saturate(1.4) blur(10px);
+    -webkit-backdrop-filter:saturate(1.4) blur(10px);
+    border-bottom:1.5px solid var(--ink);
+  }
+  .top .wrap{ display:flex; align-items:center; gap:14px; height:64px; }
+  .logo{ display:flex; align-items:center; gap:10px; text-decoration:none; }
+  .logo svg{ width:34px; height:34px; flex:none; }
+  .logo b{
+    white-space:nowrap; font-family:var(--display); font-weight:800; font-size:20px; letter-spacing:-.02em;
+    font-variation-settings:"opsz" 96; line-height:1; text-transform:uppercase;
+  }
+  .logo small{ display:block; font-size:11px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-top:3px; }
+  .top nav .btn{ white-space:nowrap; }
+  @media (max-width:380px){ .logo small{ display:none; } }
+  .top nav{ margin-left:auto; display:flex; align-items:center; gap:6px; }
+  .top nav a.link{ display:none; text-decoration:none; font-weight:600; padding:8px 12px; border-radius:999px; }
+  .top nav a.link:hover{ background:var(--paper); }
+  @media (min-width:820px){ .top nav a.link{ display:inline-block; } }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    border:1.5px solid var(--ink); background:var(--ink); color:var(--paper);
+    font-weight:700; font-size:15px; line-height:1;
+    padding:13px 20px; border-radius:999px; text-decoration:none;
+    transition:transform .15s ease, box-shadow .15s ease, background .15s;
+    box-shadow:0 0 0 var(--ink);
+  }
+  .btn:hover{ transform:translate(-2px,-2px); box-shadow:3px 3px 0 var(--ink); }
+  .btn:active{ transform:none; box-shadow:none; }
+  .btn.red{ background:var(--bomba); color:#fff; }
+  .btn.light{ background:var(--paper); color:var(--ink); }
+  .btn.small{ padding:10px 14px; font-size:14px; }
+  .btn[disabled]{ opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
+  .cart-pill{ position:relative; }
+  .cart-pill .count{
+    min-width:22px; height:22px; border-radius:999px; background:var(--sole); color:var(--ink);
+    font-size:12px; display:inline-grid; place-items:center; padding:0 6px;
+  }
+
+  /* ---------- AVISO DE PAUSA ---------- */
+  .pause{
+    display:none; background:var(--sole); border-bottom:1.5px solid var(--ink);
+    padding:12px var(--gutter); text-align:center; font-weight:600;
+  }
+  .pause.show{ display:block; }
+
+  /* ---------- HERO ---------- */
+  .hero{ padding:28px 0 0; }
+  .hero-grid{ display:grid; gap:22px; }
+  @media (min-width:900px){ .hero-grid{ grid-template-columns:1.1fr .9fr; align-items:stretch; gap:28px; } .hero{ padding-top:44px; } }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    background:var(--paper); border:1.5px solid var(--ink); border-radius:999px; padding:6px 12px;
+  }
+  .eyebrow i{ width:8px; height:8px; border-radius:50%; background:var(--bomba); display:inline-block; }
+  .hero h1{
+    font-family:var(--display); font-weight:800; font-variation-settings:"opsz" 96;
+    font-size:clamp(46px, 11vw, 104px); line-height:.9; letter-spacing:-.035em;
+    margin:18px 0 18px;
+  }
+  .hero h1 .serif{ font-size:1.02em; letter-spacing:-.01em; color:var(--bomba); }
+  .hero p.lead{ font-size:clamp(17px, 2.3vw, 20px); color:#3d352b; max-width:34ch; }
+  .hero .ctas{ display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
+  .hero-facts{ display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:22px; font-size:14px; color:var(--muted); }
+  .hero-facts span{ display:inline-flex; gap:6px; align-items:center; }
+  .hero-facts svg{ width:16px; height:16px; }
+
+  .poster{
+    position:relative; border:1.5px solid var(--ink); border-radius:28px; overflow:hidden;
+    background:var(--bomba); min-height:380px; isolation:isolate;
+  }
+  .poster .sun{
+    position:absolute; width:120%; aspect-ratio:1; left:-10%; top:42%;
+    border-radius:50%; background:var(--sole); z-index:-1;
+  }
+  .poster .rays{ position:absolute; inset:0; z-index:-2; opacity:.18;
+    background:repeating-conic-gradient(from 0deg at 50% 92%, #fff 0 6deg, transparent 6deg 18deg); }
+  .poster .scene{ position:absolute; inset:auto 0 0 0; display:flex; justify-content:center; align-items:flex-end; padding:0 4% 5%; }
+  .poster .scene svg{ width:100%; max-width:520px; height:auto; }
+  .poster .title{
+    position:absolute; left:22px; top:20px; right:22px; color:#fff;
+    font-family:var(--display); font-weight:800; font-size:clamp(24px, 4.2vw, 34px); line-height:.95;
+    letter-spacing:-.02em; text-transform:uppercase; font-variation-settings:"opsz" 96;
+  }
+  .poster .title .serif{ text-transform:none; display:block; font-size:1.05em; color:var(--crema); }
+  .sticker{
+    position:absolute; right:14px; top:14px; width:104px; height:104px;
+    animation:spin 22s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @media (min-width:900px){ .poster{ min-height:auto; } .sticker{ width:124px; height:124px; right:20px; top:20px; } }
+
+  /* ---------- CINTA ---------- */
+  .ticker{
+    margin-top:30px; background:var(--ink); color:var(--crema);
+    border-block:1.5px solid var(--ink); overflow:hidden; white-space:nowrap;
+  }
+  .ticker-track{ display:inline-flex; gap:0; animation:ticker 38s linear infinite; padding:12px 0; }
+  .ticker-track span{
+    font-family:var(--display); font-weight:700; font-size:18px; text-transform:uppercase; letter-spacing:.02em;
+    padding:0 18px; display:inline-flex; align-items:center; gap:18px;
+  }
+  .ticker-track span::after{ content:"✺"; color:var(--sole); }
+  @keyframes ticker{ to{ transform:translateX(-50%); } }
+
+  /* ---------- SECCIONES ---------- */
+  section{ padding:56px 0; }
+  .sec-head{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px 24px; margin-bottom:26px; }
+  .sec-head h2{
+    font-family:var(--display); font-weight:800; font-variation-settings:"opsz" 96;
+    font-size:clamp(36px, 7vw, 64px); line-height:.92; letter-spacing:-.03em;
+  }
+  .sec-head h2 .serif{ color:var(--bomba); }
+  .sec-head p{ color:var(--muted); max-width:42ch; }
+
+  /* Cómo funciona */
+  .steps{ display:grid; gap:12px; counter-reset:step; }
+  @media (min-width:760px){ .steps{ grid-template-columns:repeat(3,1fr); } }
+  .step{
+    background:var(--paper); border:1.5px solid var(--ink); border-radius:var(--radius);
+    padding:20px; display:grid; grid-template-columns:auto 1fr; gap:4px 16px; align-items:start;
+  }
+  .step::before{
+    counter-increment:step; content:counter(step);
+    grid-row:span 2; width:48px; height:48px; border-radius:50%; display:grid; place-items:center;
+    font-family:var(--display); font-weight:800; font-size:22px; background:var(--sole); border:1.5px solid var(--ink);
+  }
+  .step:nth-child(2)::before{ background:var(--pistacchio); }
+  .step:nth-child(3)::before{ background:var(--rosa); }
+  .step h3{ font-family:var(--display); font-size:20px; font-weight:800; letter-spacing:-.01em; line-height:1.15; }
+  .step p{ color:var(--muted); font-size:15px; }
+
+  /* ---------- CATÁLOGO ---------- */
+  #catalogo{ background:var(--paper); border-block:1.5px solid var(--ink); }
+  .cats{
+    position:sticky; top:64px; z-index:30; background:var(--paper);
+    margin:0 calc(var(--gutter) * -1) 22px; padding:10px var(--gutter);
+    display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;
+    border-bottom:1px solid var(--line);
+  }
+  .cats::-webkit-scrollbar{ display:none; }
+  .cats a{
+    flex:none; text-decoration:none; font-weight:700; font-size:14px;
+    padding:9px 14px; border-radius:999px; border:1.5px solid var(--ink); background:var(--crema);
+  }
+  .cats a.active{ background:var(--ink); color:var(--paper); }
+  .cat-block{ margin-bottom:44px; }
+  .cat-block:last-child{ margin-bottom:0; }
+  .cat-title{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .cat-title h3{ font-family:var(--display); font-weight:800; font-size:clamp(28px, 5vw, 40px); letter-spacing:-.02em; line-height:1; }
+  .cat-title p{ color:var(--muted); font-size:15px; }
+  .grid{ display:grid; gap:14px; grid-template-columns:1fr; }
+  @media (min-width:560px){ .grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (min-width:960px){ .grid{ grid-template-columns:repeat(3,1fr); } }
+
+  .card{
+    display:flex; flex-direction:column; background:var(--crema);
+    border:1.5px solid var(--ink); border-radius:var(--radius); overflow:hidden;
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .card:hover{ transform:translate(-3px,-3px); box-shadow:5px 5px 0 var(--ink); }
+  .card .art{ position:relative; aspect-ratio:16/10; display:grid; place-items:center; border-bottom:1.5px solid var(--ink); overflow:hidden; }
+  .card .art svg{ width:78%; height:auto; }
+  .card .art img{ width:100%; height:100%; object-fit:cover; }
+  .tone-sole{ background:var(--sole); }
+  .tone-pistacchio{ background:var(--pistacchio); }
+  .tone-cielo{ background:var(--cielo); }
+  .tone-rosa{ background:var(--rosa); }
+  .tone-bomba{ background:var(--bomba); }
+  .card .tag{
+    position:absolute; left:12px; top:12px; background:var(--paper); border:1.5px solid var(--ink);
+    border-radius:999px; font-size:12px; font-weight:700; padding:4px 10px; display:inline-flex; gap:6px; align-items:center;
+  }
+  .card .tag svg{ width:13px; height:13px; }
+  .card .body{ padding:16px 16px 14px; display:flex; flex-direction:column; gap:4px; flex:1; }
+  .card h4{ font-family:var(--display); font-weight:800; font-size:21px; line-height:1.1; letter-spacing:-.01em; }
+  .card .it{ font-family:var(--serif); font-style:italic; font-size:18px; color:var(--bomba-deep); line-height:1.1; }
+  .card .desc{ color:var(--muted); font-size:14.5px; margin-top:4px; }
+  .card .foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto; padding-top:14px; }
+  .price{ font-family:var(--display); font-weight:800; font-size:22px; font-variant-numeric:tabular-nums; }
+  .price small{ font-family:var(--text); font-weight:500; font-size:13px; color:var(--muted); margin-left:4px; }
+  .add{
+    width:44px; height:44px; border-radius:50%; border:1.5px solid var(--ink); background:var(--ink); color:var(--paper);
+    display:grid; place-items:center; font-size:24px; line-height:1; font-weight:500;
+  }
+  .add:hover{ background:var(--bomba); }
+  .stepper{ display:inline-flex; align-items:center; border:1.5px solid var(--ink); border-radius:999px; background:var(--paper); }
+  .stepper button{ width:40px; height:40px; border:0; background:none; font-size:20px; border-radius:50%; }
+  .stepper button:hover{ background:var(--crema); }
+  .stepper output{ min-width:26px; text-align:center; font-weight:800; font-variant-numeric:tabular-nums; }
+  .soldout{ font-size:13px; font-weight:700; color:var(--bomba-deep); }
+  .note-prices{ margin-top:28px; font-size:13.5px; color:var(--muted); }
+
+  /* ---------- VISITA ---------- */
+  .visit{ display:grid; gap:14px; }
+  @media (min-width:900px){ .visit{ grid-template-columns:1.1fr .9fr; } }
+  .panel{ background:var(--paper); border:1.5px solid var(--ink); border-radius:var(--radius); padding:22px; }
+  .panel h3{ font-family:var(--display); font-weight:800; font-size:24px; letter-spacing:-.01em; margin-bottom:12px; }
+  .hours{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  .hours td{ padding:9px 0; border-bottom:1px dashed var(--line); }
+  .hours td:last-child{ text-align:right; font-weight:600; }
+  .hours tr.today td{ color:var(--bomba-deep); font-weight:800; }
+  .contact{ display:grid; gap:10px; margin-top:16px; }
+  .contact a{ display:flex; gap:10px; align-items:center; text-decoration:none; font-weight:600; }
+  .contact svg{ width:20px; height:20px; flex:none; }
+  .cortile{ background:var(--pistacchio); position:relative; overflow:hidden; }
+  .cortile p{ font-size:17px; max-width:40ch; }
+  .cortile .serif{ font-size:1.25em; }
+  .cortile ul{ list-style:none; display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .cortile li{ background:var(--paper); border:1.5px solid var(--ink); border-radius:999px; padding:6px 12px; font-size:14px; font-weight:700; }
+
+  footer{ background:var(--ink); color:var(--crema); padding:40px 0 130px; }
+  footer .big{
+    font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:-.04em;
+    font-size:clamp(56px, 17vw, 200px); line-height:.82; color:var(--bomba); font-variation-settings:"opsz" 96;
+  }
+  footer .row{ display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:space-between; margin-top:20px; font-size:14px; color:#cbbfae; }
+
+  /* ---------- BARRA DE CESTA ---------- */
+  .cartbar{
+    position:fixed; left:50%; bottom:14px; transform:translate(-50%, 140%);
+    width:min(560px, calc(100% - 24px)); z-index:50;
+    display:flex; align-items:center; gap:12px; padding:10px 10px 10px 18px;
+    background:var(--ink); color:var(--paper); border-radius:999px;
+    box-shadow:0 14px 40px rgba(31,26,20,.35);
+    transition:transform .3s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .cartbar:not(.show){ visibility:hidden; transition:transform .3s, visibility 0s .3s; }
+  .cartbar.show{ transform:translate(-50%, 0); }
+  .cartbar .sum{ display:flex; flex-direction:column; line-height:1.15; min-width:0; }
+  .cartbar .sum b{ font-family:var(--display); font-size:19px; font-variant-numeric:tabular-nums; }
+  .cartbar .sum span{ font-size:13px; color:#cbbfae; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cartbar .btn{ margin-left:auto; border-color:var(--bomba); }
+
+  /* ---------- HOJA DE ENCARGO ---------- */
+  .overlay{
+    position:fixed; inset:0; z-index:60; background:rgba(31,26,20,.5);
+    display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .sheet{
+    width:100%; max-width:640px; max-height:94vh; max-height:94dvh;
+    background:var(--crema); border:1.5px solid var(--ink); border-bottom:0;
+    border-radius:26px 26px 0 0; display:flex; flex-direction:column;
+    transform:translateY(30px); transition:transform .25s ease;
+  }
+  .overlay.show .sheet{ transform:none; }
+  @media (min-width:700px){
+    .overlay{ align-items:center; padding:20px; }
+    .sheet{ border-radius:26px; border-bottom:1.5px solid var(--ink); max-height:90vh; }
+  }
+  .sheet-head{ display:flex; align-items:center; gap:12px; padding:16px 18px 12px; border-bottom:1.5px solid var(--ink); }
+  .sheet-head h2{ font-family:var(--display); font-weight:800; font-size:24px; letter-spacing:-.02em; line-height:1.1; }
+  .icon-btn{ width:40px; height:40px; border-radius:50%; border:1.5px solid var(--ink); background:var(--paper); display:grid; place-items:center; flex:none; }
+  .icon-btn svg{ width:18px; height:18px; }
+  .icon-btn.close{ margin-left:auto; }
+  .icon-btn[hidden]{ display:none; }
+  .progress{ display:flex; gap:6px; padding:12px 18px 0; }
+  .progress i{ flex:1; height:6px; border-radius:6px; background:var(--line); }
+  .progress i.on{ background:var(--bomba); }
+  .sheet-body{ padding:16px 18px 18px; overflow-y:auto; flex:1; overscroll-behavior:contain; }
+  .sheet-foot{ padding:12px 18px calc(14px + env(safe-area-inset-bottom)); border-top:1.5px solid var(--ink); background:var(--paper); display:flex; align-items:center; gap:12px; }
+  .sheet-foot .total{ display:flex; flex-direction:column; line-height:1.1; }
+  .sheet-foot .total span{ font-size:13px; color:var(--muted); }
+  .sheet-foot .total b{ font-family:var(--display); font-size:22px; font-variant-numeric:tabular-nums; }
+  .sheet-foot .btn{ margin-left:auto; }
+  .step-pane{ display:none; }
+  .step-pane.on{ display:block; }
+  .label{ font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:18px 0 10px; }
+  .label:first-child{ margin-top:0; }
+
+  .line{ display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line); }
+  .line .mini{ width:52px; height:52px; border-radius:14px; border:1.5px solid var(--ink); display:grid; place-items:center; flex:none; overflow:hidden; }
+  .line .mini svg{ width:84%; }
+  .line .mini img{ width:100%; height:100%; object-fit:cover; }
+  .line .info{ flex:1; min-width:0; }
+  .line .info b{ display:block; font-weight:700; line-height:1.2; }
+  .line .info span{ font-size:13px; color:var(--muted); }
+  .line .stepper button{ width:34px; height:34px; font-size:18px; }
+  .lead-note{ margin-top:14px; background:var(--paper); border:1.5px dashed var(--ink); border-radius:16px; padding:12px 14px; font-size:14px; display:flex; gap:10px; }
+  .lead-note svg{ width:20px; height:20px; flex:none; margin-top:1px; }
+  .empty{ text-align:center; padding:30px 10px; color:var(--muted); }
+
+  .days{ display:flex; gap:8px; overflow-x:auto; padding:2px 2px 8px; margin:0 -2px; scrollbar-width:thin; }
+  .day{
+    flex:none; width:72px; padding:10px 0 9px; border-radius:18px; border:1.5px solid var(--ink); background:var(--paper);
+    display:flex; flex-direction:column; align-items:center; gap:1px; line-height:1.1;
+  }
+  .day small{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  .day b{ font-family:var(--display); font-size:26px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .day span{ font-size:12px; color:var(--muted); }
+  .day[aria-pressed="true"]{ background:var(--ink); color:var(--paper); }
+  .day[aria-pressed="true"] small, .day[aria-pressed="true"] span{ color:#d9cdbb; }
+  .day:disabled{ opacity:.4; cursor:not-allowed; border-style:dashed; background:transparent; }
+  .slot-group{ margin-top:14px; }
+  .slot-group h4{ font-size:14px; font-weight:700; margin-bottom:8px; display:flex; gap:6px; align-items:center; }
+  .slots{ display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:8px; }
+  .slot{
+    padding:10px 6px; border-radius:14px; border:1.5px solid var(--ink); background:var(--paper);
+    font-weight:700; font-size:14.5px; white-space:nowrap; font-variant-numeric:tabular-nums; display:flex; flex-direction:column; align-items:center; line-height:1.15;
+  }
+  .slot em{ font-style:normal; font-size:11.5px; font-weight:600; color:var(--muted); margin-top:2px; }
+  .slot.few em{ color:var(--bomba-deep); }
+  .slot[aria-pressed="true"]{ background:var(--bomba); color:#fff; }
+  .slot[aria-pressed="true"] em{ color:#ffe3dc; }
+  .slot:disabled{ opacity:.4; cursor:not-allowed; border-style:dashed; background:transparent; }
+  .hint{ font-size:14px; color:var(--muted); margin-top:10px; }
+  .loading{ display:flex; gap:8px; align-items:center; color:var(--muted); font-size:14px; padding:10px 0; }
+  .loading::before{ content:""; width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--bomba); border-radius:50%; animation:spin .8s linear infinite; }
+
+  .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .field label{ font-weight:700; font-size:14px; }
+  .field label span{ font-weight:500; color:var(--muted); }
+  .field input, .field textarea{
+    width:100%; padding:13px 14px; border-radius:14px; border:1.5px solid var(--ink); background:var(--paper); font-size:16px;
+  }
+  .field textarea{ min-height:84px; resize:vertical; }
+  .field input:focus, .field textarea:focus{ outline:none; box-shadow:3px 3px 0 var(--ink); }
+  .field .err{ font-size:13px; color:var(--bomba-deep); font-weight:600; display:none; }
+  .field.invalid input{ border-color:var(--bomba-deep); }
+  .field.invalid .err{ display:block; }
+  .check{ display:flex; gap:10px; font-size:14px; color:#3d352b; align-items:flex-start; }
+  .check input{ width:20px; height:20px; accent-color:var(--bomba); flex:none; margin-top:1px; }
+  .recap{ background:var(--paper); border:1.5px solid var(--ink); border-radius:18px; padding:14px 16px; margin-bottom:18px; display:grid; gap:4px; font-size:15px; }
+  .recap b{ font-family:var(--display); font-size:18px; }
+  .recap button{ justify-self:start; background:none; border:0; text-decoration:underline; font-size:14px; color:var(--muted); padding:0; }
+  .form-error{ display:none; margin-top:12px; background:#FDE3DD; border:1.5px solid var(--bomba-deep); color:var(--bomba-deep); border-radius:14px; padding:10px 12px; font-size:14px; font-weight:600; }
+  .form-error.show{ display:block; }
+
+  /* Ticket de confirmación */
+  .ticket{
+    background:var(--paper); border:1.5px solid var(--ink); border-radius:22px; overflow:hidden; text-align:center;
+  }
+  .ticket .top-t{ background:var(--bomba); color:#fff; padding:22px 18px 18px; border-bottom:2px dashed var(--ink); }
+  .ticket .top-t small{ font-size:13px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; opacity:.9; }
+  .ticket .top-t b{ display:block; font-family:var(--display); font-size:64px; line-height:1; font-weight:800; letter-spacing:-.03em; margin-top:4px; }
+  .ticket .when{ padding:18px; display:grid; gap:2px; }
+  .ticket .when b{ font-family:var(--display); font-size:24px; font-weight:800; line-height:1.15; }
+  .ticket .when span{ color:var(--muted); }
+  .ticket .items{ text-align:left; padding:0 18px 16px; font-size:14px; color:#3d352b; white-space:pre-line; }
+  .confirm-actions{ display:grid; gap:10px; margin-top:16px; }
+  .confirm-actions .btn{ width:100%; padding:15px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#" aria-label="Forno Bomba, inicio">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="18" cy="23" r="14" fill="#1F1A14"/>
+        <rect x="21" y="7" width="8" height="6" rx="1.5" transform="rotate(35 25 10)" fill="#1F1A14"/>
+        <path d="M28 6 Q31 2 34 4" stroke="#1F1A14" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M35 1.5v3M37.5 3.5l-2 1.5M33 0.5l1 2.5" stroke="#E5432B" stroke-width="1.8" stroke-linecap="round"/>
+        <ellipse cx="13" cy="19" rx="3.5" ry="2.2" transform="rotate(-35 13 19)" fill="#F5EEE1" opacity=".8"/>
+      </svg>
+      <span><b>Forno Bomba</b><small>Sants · Barcelona</small></span>
+    </a>
+    <nav aria-label="Principal">
+      <a class="link" href="#catalogo">Catálogo</a>
+      <a class="link" href="#como">Cómo funciona</a>
+      <a class="link" href="#visita">Visítanos</a>
+      <button class="btn small red cart-pill" id="openCartTop" type="button" aria-label="Ver tu encargo">
+        Tu encargo <span class="count" id="cartCountTop">0</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<div class="pause" id="pauseBanner" role="status"></div>
+
+<main>
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="heroTitle">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow"><i></i>Encargos online · recogida en el forno</span>
+        <h1 id="heroTitle">Pane, focaccia &amp; <span class="serif">buns</span> a tu hora.</h1>
+        <p class="lead">Masa madre y fermentaciones lentas, horneado cada día en Sants. Elige qué quieres, el día y el tramo, y te lo tenemos listo en el mostrador.</p>
+        <div class="ctas">
+          <a class="btn red" href="#catalogo">Hacer un encargo
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn light" href="#como">Cómo funciona</a>
+        </div>
+        <div class="hero-facts">
+          <span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="2"/></svg>Carrer del Vallespir, 24</span>
+          <span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="heroToday">Ma–Do</span></span>
+          <span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7Z" stroke="currentColor" stroke-width="2"/><path d="M9 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="2"/></svg>Pagas al recoger</span>
+        </div>
+      </div>
+
+      <div class="poster" aria-hidden="true">
+        <div class="rays"></div>
+        <div class="sun"></div>
+        <div class="title">Fatto a mano<span class="serif">a Sants, ogni giorno</span></div>
+        <svg class="sticker" viewBox="0 0 120 120">
+          <defs><path id="circ" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/></defs>
+          <circle cx="60" cy="60" r="58" fill="#F5EEE1" stroke="#1F1A14" stroke-width="1.5"/>
+          <text font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="12.5" letter-spacing="2.6" fill="#1F1A14">
+            <textPath href="#circ">LIEVITO MADRE ✺ LENTA FERMENTAZIONE ✺</textPath>
+          </text>
+          <circle cx="60" cy="60" r="20" fill="#E5432B"/>
+          <path d="M52 60 a8 8 0 1 1 8 8" stroke="#F5EEE1" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </svg>
+        <div class="scene" id="heroScene"></div>
+      </div>
+    </div>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track">
+        <span>Lievito madre</span><span>Focaccia</span><span>Pizza in teglia</span><span>Cinnamon buns</span><span>Cardamom buns</span><span>Caffè</span><span>Vino naturale</span>
+        <span>Lievito madre</span><span>Focaccia</span><span>Pizza in teglia</span><span>Cinnamon buns</span><span>Cardamom buns</span><span>Caffè</span><span>Vino naturale</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CÓMO FUNCIONA -->
+  <section id="como" aria-labelledby="comoTitle">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="comoTitle">Encarga en <span class="serif">tre</span> pasos</h2>
+        <p>Sin colas ni sustos de "se ha acabado": lo apartamos para ti y lo recoges en el tramo que elijas.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><h3>Llena la cesta</h3><p>Pan, focaccia, pizza in teglia o buns. Algunas piezas grandes necesitan un poco más de antelación.</p></div>
+        <div class="step"><h3>Elige día y tramo</h3><p>Ves los huecos libres de los próximos días en tramos de media hora, según nuestro horario.</p></div>
+        <div class="step"><h3>Recoge y paga</h3><p>Pasa por Vallespir 24 con tu número de encargo. Pagas en el mostrador, con tarjeta o efectivo.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATÁLOGO -->
+  <section id="catalogo" aria-labelledby="catTitle">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="catTitle">Dal <span class="serif">forno</span></h2>
+        <p>Lo que sale cada día del horno. Toca <b>+</b> para añadirlo a tu encargo.</p>
+      </div>
+      <nav class="cats" id="cats" aria-label="Categorías"></nav>
+      <div id="catalog"></div>
+      <p class="note-prices">Precios con IVA incluido. Las piezas pueden variar ligeramente de peso y forma: aquí todo se hace a mano.</p>
+    </div>
+  </section>
+
+  <!-- VISITA -->
+  <section id="visita" aria-labelledby="visitTitle">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="visitTitle">Vieni a <span class="serif">trovarci</span></h2>
+        <p>Recoges tus encargos en el mostrador del forno, en el corazón de Sants.</p>
+      </div>
+      <div class="visit">
+        <div class="panel">
+          <h3>Horario del forno</h3>
+          <table class="hours" id="hoursTable"></table>
+          <div class="contact">
+            <a href="https://maps.google.com/?q=Forno+Bomba,+Carrer+del+Vallespir+24,+08014+Barcelona" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="2"/></svg>
+              Carrer del Vallespir, 24 · 08014 Barcelona
+            </a>
+            <a href="tel:+34673473647" id="telLink">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+              <span id="telText">673 473 647</span>
+            </a>
+            <a href="https://www.instagram.com/fornobomba/" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
+              @fornobomba
+            </a>
+          </div>
+        </div>
+        <div class="panel cortile">
+          <h3>Il cortile</h3>
+          <p>Detrás del mostrador hay un pequeño patio con mesas y bancos. Quédate a <span class="serif">fare due chiacchiere</span> con un café de especialidad, una cerveza artesana, un vermut o un vino natural.</p>
+          <ul><li>Café de especialidad</li><li>Vino natural</li><li>Vermut</li><li>Cerveza artesana</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="big">Forno<br>Bomba</div>
+    <div class="row">
+      <span>Forno italiano · Carrer del Vallespir, 24 · Sants, Barcelona</span>
+      <span>Encargos online con recogida en el local</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Barra flotante de la cesta -->
+<div class="cartbar" id="cartbar" role="region" aria-label="Resumen del encargo">
+  <div class="sum"><b id="barTotal" class="num">0,00 €</b><span id="barCount">0 productos</span></div>
+  <button class="btn red" type="button" id="openCartBar">Elegir día y hora
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+
+<!-- Hoja del encargo (cesta → recogida → datos → confirmación) -->
+<div class="overlay" id="orderOverlay" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-head">
+      <button class="icon-btn" id="backBtn" type="button" aria-label="Volver" hidden>
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 id="sheetTitle">Tu encargo</h2>
+      <button class="icon-btn close" id="closeBtn" type="button" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="progress" id="progress" aria-hidden="true"><i></i><i></i><i></i></div>
+
+    <div class="sheet-body" id="sheetBody">
+      <!-- Paso 1: cesta -->
+      <div class="step-pane" data-step="1">
+        <div id="cartLines"></div>
+        <div id="leadNote"></div>
+      </div>
+
+      <!-- Paso 2: día y tramo -->
+      <div class="step-pane" data-step="2">
+        <p class="label">Día de recogida</p>
+        <div class="days" id="days" role="group" aria-label="Día de recogida"></div>
+        <p class="label">Tramo de recogida</p>
+        <div id="slotsWrap"></div>
+      </div>
+
+      <!-- Paso 3: datos -->
+      <div class="step-pane" data-step="3">
+        <div class="recap" id="recap"></div>
+        <form id="dataForm" novalidate>
+          <div class="field" id="fName">
+            <label for="cName">Nombre</label>
+            <input id="cName" name="name" autocomplete="name" required maxlength="60">
+            <span class="err">Dinos a nombre de quién lo apartamos.</span>
+          </div>
+          <div class="field" id="fPhone">
+            <label for="cPhone">Teléfono <span>(por si tenemos que avisarte)</span></label>
+            <input id="cPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="20" placeholder="6xx xxx xxx">
+            <span class="err">Necesitamos un teléfono válido.</span>
+          </div>
+          <div class="field" id="fEmail">
+            <label for="cEmail">Email <span>(opcional)</span></label>
+            <input id="cEmail" name="email" type="email" autocomplete="email" maxlength="80">
+            <span class="err">Este email no parece correcto.</span>
+          </div>
+          <div class="field">
+            <label for="cNotes">Notas <span>(opcional)</span></label>
+            <textarea id="cNotes" name="notes" maxlength="300" placeholder="Alergias, si lo quieres cortado, un mensaje para una tarta de cumpleaños…"></textarea>
+          </div>
+          <label class="check"><input type="checkbox" id="cOk" required>
+            <span>Acepto que Forno Bomba use estos datos solo para gestionar este encargo. El pago se hace en el local al recogerlo.</span>
+          </label>
+          <div class="form-error" id="formError" role="alert"></div>
+        </form>
+      </div>
+
+      <!-- Paso 4: confirmado -->
+      <div class="step-pane" data-step="4">
+        <div class="ticket">
+          <div class="top-t"><small>Encargo confirmado</small><b id="tNumber">#000</b></div>
+          <div class="when"><b id="tDay"></b><span id="tSlot"></span><span>Carrer del Vallespir, 24 · Pagas al recoger</span></div>
+          <div class="items" id="tItems"></div>
+        </div>
+        <div class="confirm-actions">
+          <button class="btn light" type="button" id="icsBtn">Añadir a mi calendario</button>
+          <a class="btn" id="waBtn" target="_blank" rel="noopener" href="#">Enviar copia por WhatsApp</a>
+          <button class="btn red" type="button" id="doneBtn">Perfecto, ¡grazie!</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-foot" id="sheetFoot">
+      <div class="total"><span>Total a pagar en el forno</span><b id="sheetTotal" class="num">0,00 €</b></div>
+      <button class="btn red" type="button" id="nextBtn">Continuar</button>
+    </div>
+  </div>
+</div>
+
+<script src="datos.js"></script>
+<script>
+const DAY_KEYS = ["sun","mon","tue","wed","thu","fri","sat"];
+const DAY_SHORT = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const MONTH_SHORT = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+
+let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+let cart = loadCart();       // { id: qty }
+let step = 1;
+let pickup = { date: null, slot: null };
+let slotCache = {};          // date -> { at, capacity, counts }
+let lastOrder = null;
+let slotNotice = "";   // aviso que se muestra encima de los tramos (p. ej. tramo recién lleno)
+
+const $ = s => document.querySelector(s);
+const fmt = n => n.toFixed(2).replace(".", ",") + " €";
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const catalog = () => (config.catalog && config.catalog.length ? config.catalog : DEFAULT_CATALOG);
+const itemById = id => catalog().find(i => i.id === id);
+
+function storeGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function storeSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ /* sin almacenamiento */ } }
+function loadCart(){ const c = storeGet("fb_cart"); return c && typeof c === "object" ? c : {}; }
+function saveCart(){ storeSet("fb_cart", cart); }
+
+/* ---------- ILUSTRACIONES (se usan si el producto no tiene foto) ---------- */
+function dimples(x0, y0, cols, rows, dx, dy, r, fill){
+  let s = "";
+  for(let j=0;j<rows;j++) for(let i=0;i<cols;i++){
+    const x = x0 + i*dx + (j%2 ? dx/2 : 0), y = y0 + j*dy;
+    s += `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r*0.75}" fill="${fill}"/>`;
+  }
+  return s;
+}
+function sprig(x, y, rot){
+  return `<g transform="translate(${x} ${y}) rotate(${rot})"><path d="M0 0 L22 0" stroke="#3F6B2C" stroke-width="2" stroke-linecap="round"/>
+    ${[3,8,13,18].map(p=>`<path d="M${p} 0 l4 -5 M${p} 0 l4 5" stroke="#4F7F36" stroke-width="2.2" stroke-linecap="round"/>`).join("")}</g>`;
+}
+const SHADOW = `<ellipse cx="100" cy="142" rx="80" ry="9" fill="#1F1A14" opacity=".14"/>`;
+const ART = {
+  loaf: () => `<svg viewBox="0 0 200 155" aria-hidden="true">${SHADOW}
+    <path d="M18 112 C14 62 60 34 100 34 C140 34 186 62 182 112 C182 132 150 138 100 138 C50 138 18 132 18 112Z" fill="#B87536" stroke="#1F1A14" stroke-width="2.5"/>
+    <path d="M30 100 C34 66 66 46 100 46 C134 46 166 66 170 100" fill="none" stroke="#D99A55" stroke-width="10" stroke-linecap="round" opacity=".55"/>
+    <path d="M55 92 Q72 66 98 62" stroke="#F3D9A8" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M85 104 Q104 76 132 72" stroke="#F3D9A8" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M118 112 Q134 94 152 92" stroke="#F3D9A8" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <g fill="#fff" opacity=".7"><circle cx="70" cy="58" r="1.6"/><circle cx="120" cy="52" r="1.4"/><circle cx="142" cy="66" r="1.6"/><circle cx="92" cy="50" r="1.2"/></g></svg>`,
+  focaccia: () => `<svg viewBox="0 0 200 155" aria-hidden="true">${SHADOW}
+    <rect x="14" y="40" width="172" height="98" rx="20" fill="#C98B3A" stroke="#1F1A14" stroke-width="2.5"/>
+    <rect x="20" y="36" width="160" height="88" rx="18" fill="#EDB85C" stroke="#1F1A14" stroke-width="2.5"/>
+    ${dimples(40, 54, 6, 3, 25, 23, 5.5, "#C98B3A")}
+    ${sprig(38, 70, -20)}${sprig(110, 58, 15)}${sprig(130, 100, -30)}${sprig(62, 106, 10)}
+    <g fill="#fff">${[[52,50],[92,78],[150,62],[120,86],[76,98],[160,104],[44,90]].map(([x,y])=>`<rect x="${x}" y="${y}" width="4" height="4" transform="rotate(20 ${x} ${y})"/>`).join("")}</g></svg>`,
+  focaccia2: () => `<svg viewBox="0 0 200 155" aria-hidden="true">${SHADOW}
+    <rect x="14" y="40" width="172" height="98" rx="20" fill="#C98B3A" stroke="#1F1A14" stroke-width="2.5"/>
+    <rect x="20" y="36" width="160" height="88" rx="18" fill="#EDB85C" stroke="#1F1A14" stroke-width="2.5"/>
+    ${dimples(40, 54, 6, 3, 25, 23, 4.5, "#C98B3A")}
+    ${[[50,62],[96,52],[140,70],[72,96],[120,100],[160,96]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9" fill="#E5432B" stroke="#1F1A14" stroke-width="2"/><circle cx="${x-3}" cy="${y-3}" r="2.2" fill="#fff" opacity=".6"/>`).join("")}
+    ${[[74,66],[118,76],[150,52],[96,108]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="7" ry="4" transform="rotate(-30 ${x} ${y})" fill="#1F1A14"/>`).join("")}</svg>`,
+  pizza: () => `<svg viewBox="0 0 200 155" aria-hidden="true">${SHADOW}
+    <rect x="18" y="34" width="164" height="102" rx="12" fill="#D9963F" stroke="#1F1A14" stroke-width="2.5"/>
+    <rect x="28" y="44" width="144" height="82" rx="8" fill="#D9452B"/>
+    ${[[52,64],[98,58],[146,70],[72,104],[124,100],[160,110]].map(([x,y],i)=>`<path d="M${x-12} ${y} q4 -10 12 -8 q10 -4 12 6 q4 10 -8 12 q-12 4 -16 -10z" fill="#FFF6E6" transform="rotate(${i*40} ${x} ${y})"/>`).join("")}
+    ${[[80,80],[138,88],[50,90],[110,72]].map(([x,y],i)=>`<ellipse cx="${x}" cy="${y}" rx="8" ry="4.5" transform="rotate(${i*55} ${x} ${y})" fill="#3F7A32" stroke="#1F1A14" stroke-width="1.5"/>`).join("")}
+    <path d="M100 34v102M18 85h164" stroke="#1F1A14" stroke-width="2" stroke-dasharray="4 5" opacity=".45"/></svg>`,
+  "pizza-patate": () => `<svg viewBox="0 0 200 155" aria-hidden="true">${SHADOW}
+    <rect x="18" y="34" width="164" height="102" rx="12" fill="#D9963F" stroke="#1F1A14" stroke-width="2.5"/>
+    <rect x="28" y="44" width="144" height="82" rx="8" fill="#F6E7C4"/>
+    ${[[46,60],[74,56],[102,62],[130,56],[158,62],[54,88],[82,92],[110,86],[140,90],[64,114],[94,116],[124,112],[154,114]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="14" ry="10" fill="#F4C451" stroke="#B98A2A" stroke-width="1.8"/>`).join("")}
+    ${sprig(40, 76, 10)}${sprig(118, 72, -25)}${sprig(140, 104, 20)}
+    <g fill="#1F1A14">${[[60,70],[96,104],[150,78],[120,64],[76,120]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.6"/>`).join("")}</g></svg>`,
+  "pizza-morta": () => `<svg viewBox="0 0 200 155" aria-hidden="true">${SHADOW}
+    <rect x="18" y="34" width="164" height="102" rx="12" fill="#D9963F" stroke="#1F1A14" stroke-width="2.5"/>
+    <rect x="28" y="44" width="144" height="82" rx="8" fill="#FFF6E6"/>
+    ${[[56,66,20],[110,62,22],[152,80,18],[78,104,21],[134,108,19]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#F3A49B" stroke="#C9716A" stroke-width="2"/><g fill="#fff" opacity=".85"><circle cx="${x-6}" cy="${y-4}" r="2.4"/><circle cx="${x+5}" cy="${y+5}" r="2"/><circle cx="${x+4}" cy="${y-7}" r="1.6"/></g>`).join("")}
+    <g fill="#7FA34A" stroke="#1F1A14" stroke-width="1">${[[86,76],[96,86],[130,88],[64,88],[112,96],[150,62],[44,108],[160,104],[100,118]].map(([x,y])=>`<rect x="${x}" y="${y}" width="6" height="5" rx="1.5" transform="rotate(25 ${x} ${y})"/>`).join("")}</g></svg>`,
+  bun: () => `<svg viewBox="0 0 200 155" aria-hidden="true">${SHADOW}
+    <circle cx="100" cy="86" r="56" fill="#C9813F" stroke="#1F1A14" stroke-width="2.5"/>
+    <path d="M100 86 m0 -6 a6 6 0 1 1 -6 8 a14 14 0 1 1 20 -14 a24 24 0 1 1 -32 26 a34 34 0 1 1 46 -34 a44 44 0 1 1 -58 44" fill="none" stroke="#7A4219" stroke-width="7" stroke-linecap="round"/>
+    <path d="M60 64 q20 10 30 0 q12 -10 26 4 q12 10 26 0" stroke="#FFF6E6" stroke-width="5" fill="none" stroke-linecap="round" opacity=".95"/>
+    <path d="M58 106 q18 -8 34 4 q16 10 30 -2" stroke="#FFF6E6" stroke-width="4" fill="none" stroke-linecap="round" opacity=".9"/></svg>`,
+  knot: () => `<svg viewBox="0 0 200 155" aria-hidden="true">${SHADOW}
+    <ellipse cx="80" cy="86" rx="44" ry="34" transform="rotate(-25 80 86)" fill="#D6964F" stroke="#1F1A14" stroke-width="2.5"/>
+    <ellipse cx="122" cy="84" rx="44" ry="32" transform="rotate(30 122 84)" fill="#E2A65E" stroke="#1F1A14" stroke-width="2.5"/>
+    <ellipse cx="100" cy="74" rx="26" ry="22" fill="#C9813F" stroke="#1F1A14" stroke-width="2.5"/>
+    <path d="M60 80 q20 -16 40 -4 M104 66 q20 4 38 22 M80 104 q30 6 60 -6" stroke="#8A4E22" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>
+    <g fill="#FFFBF4" stroke="#1F1A14" stroke-width=".8">${[[70,70],[92,60],[118,70],[136,92],[100,96],[78,98],[124,58],[60,94],[146,76]].map(([x,y])=>`<rect x="${x}" y="${y}" width="5" height="5" rx="1.2"/>`).join("")}</g></svg>`,
+  box: () => `<svg viewBox="0 0 200 155" aria-hidden="true">${SHADOW}
+    <path d="M22 60 L100 44 L178 60 L178 128 L22 128Z" fill="#F5EEE1" stroke="#1F1A14" stroke-width="2.5"/>
+    <path d="M22 60 L178 60" stroke="#1F1A14" stroke-width="2"/>
+    ${[[50,82],[100,82],[150,82],[50,110],[100,110],[150,110]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="20" fill="${i%2?"#E2A65E":"#C9813F"}" stroke="#1F1A14" stroke-width="2"/><path d="M${x} ${y} m0 -3 a3 3 0 1 1 -3 4 a8 8 0 1 1 11 -8 a13 13 0 1 1 -17 15" fill="none" stroke="#7A4219" stroke-width="3" stroke-linecap="round"/>`).join("")}
+    <rect x="76" y="34" width="48" height="16" rx="4" fill="#E5432B" stroke="#1F1A14" stroke-width="2"/></svg>`
+};
+const artFor = item => item.img
+  ? `<img src="${esc(item.img)}" alt="${esc(item.name)}" loading="lazy">`
+  : (ART[item.art] || ART.loaf)();
+
+/* ---------- CATÁLOGO ---------- */
+function renderCatalog(){
+  const list = catalog();
+  const cats = CATEGORIES.filter(c => list.some(i => i.cat === c.id && !i.hidden));
+  $("#cats").innerHTML = cats.map((c,i) => `<a href="#cat-${c.id}" class="${i===0?"active":""}">${esc(c.name)}</a>`).join("");
+  $("#catalog").innerHTML = cats.map(c => `
+    <div class="cat-block" id="cat-${c.id}">
+      <div class="cat-title"><h3>${esc(c.name)}</h3><p>${esc(c.note)}</p></div>
+      <div class="grid">
+        ${list.filter(i => i.cat === c.id && !i.hidden).map(cardHtml).join("")}
+      </div>
+    </div>`).join("");
+  observeCats();
+}
+
+function cardHtml(item){
+  const qty = cart[item.id] || 0;
+  const leadTxt = item.lead >= 24 ? `${Math.round(item.lead/24)} día${item.lead>=48?"s":""} antes` : `${item.lead} h antes`;
+  const control = item.soldOut
+    ? `<span class="soldout">Agotado esta semana</span>`
+    : qty > 0
+      ? `<div class="stepper" role="group" aria-label="Cantidad de ${esc(item.name)}">
+           <button type="button" data-dec="${item.id}" aria-label="Quitar uno">−</button>
+           <output aria-live="polite">${qty}</output>
+           <button type="button" data-inc="${item.id}" aria-label="Añadir uno">+</button>
+         </div>`
+      : `<button class="add" type="button" data-inc="${item.id}" aria-label="Añadir ${esc(item.name)}">+</button>`;
+  return `
+    <article class="card" data-card="${item.id}">
+      <div class="art tone-${esc(item.tone || "sole")}">
+        <span class="tag"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.4"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Encarga ${leadTxt}</span>
+        ${artFor(item)}
+      </div>
+      <div class="body">
+        <h4>${esc(item.name)}</h4>
+        <div class="it">${esc(item.it || "")}</div>
+        <p class="desc">${esc(item.desc || "")}</p>
+        <div class="foot">
+          <span class="price">${fmt(item.price)}<small>/ ${esc(item.unit || "ud.")}</small></span>
+          ${control}
+        </div>
+      </div>
+    </article>`;
+}
+
+function refreshCard(id){
+  const el = document.querySelector(`[data-card="${id}"]`);
+  if(!el) return;
+  const tmp = document.createElement("div");
+  tmp.innerHTML = cardHtml(itemById(id)).trim();
+  el.querySelector(".foot").replaceWith(tmp.firstElementChild.querySelector(".foot"));
+}
+
+function changeQty(id, delta){
+  const item = itemById(id);
+  if(!item || item.soldOut) return;
+  const q = Math.max(0, Math.min(50, (cart[id] || 0) + delta));
+  if(q === 0) delete cart[id]; else cart[id] = q;
+  saveCart();
+  refreshCard(id);
+  renderCartBar();
+  if($("#orderOverlay").classList.contains("show")) renderCartLines();
+  // Si cambia la cesta, la antelación necesaria puede cambiar: revalidamos la recogida.
+  if(pickup.date && !isSlotSelectable(pickup.date, pickup.slot)) pickup.slot = null;
+}
+
+document.addEventListener("click", e => {
+  const inc = e.target.closest("[data-inc]");
+  const dec = e.target.closest("[data-dec]");
+  if(inc) changeQty(inc.dataset.inc, +1);
+  if(dec) changeQty(dec.dataset.dec, -1);
+});
+
+function cartEntries(){
+  return Object.entries(cart).map(([id, qty]) => ({ item: itemById(id), qty })).filter(e => e.item && e.qty > 0);
+}
+const cartCount = () => cartEntries().reduce((s, e) => s + e.qty, 0);
+const cartTotal = () => cartEntries().reduce((s, e) => s + e.qty * e.item.price, 0);
+const cartLead = () => cartEntries().reduce((m, e) => Math.max(m, e.item.lead || 0), 0);
+
+function renderCartBar(){
+  const n = cartCount();
+  $("#cartCountTop").textContent = n;
+  $("#barTotal").textContent = fmt(cartTotal());
+  $("#barCount").textContent = n === 1 ? "1 producto" : `${n} productos`;
+  $("#cartbar").classList.toggle("show", n > 0 && !$("#orderOverlay").classList.contains("show"));
+  $("#sheetTotal").textContent = fmt(cartTotal());
+}
+
+/* Categoría activa al hacer scroll */
+let catObserver;
+function observeCats(){
+  if(catObserver) catObserver.disconnect();
+  if(!("IntersectionObserver" in window)) return;
+  catObserver = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if(!en.isIntersecting) return;
+      document.querySelectorAll("#cats a").forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id));
+    });
+  }, { rootMargin: "-40% 0px -55% 0px" });
+  document.querySelectorAll(".cat-block").forEach(b => catObserver.observe(b));
+}
+
+/* ---------- FECHAS Y TRAMOS ---------- */
+const pad = n => String(n).padStart(2, "0");
+const dateKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const toMin = t => { const [h, m] = t.split(":").map(Number); return h*60 + m; };
+const fromMin = m => `${pad(Math.floor(m/60))}:${pad(m%60)}`;
+function parseKey(k){ const [y, m, d] = k.split("-").map(Number); return new Date(y, m-1, d); }
+
+function slotsForDate(key){
+  const day = config.schedule[DAY_KEYS[parseKey(key).getDay()]];
+  if(!day || (config.closedDates || []).includes(key)) return [];
+  const len = config.slotMinutes || 30, out = [];
+  for(let m = toMin(day.from); m + len <= toMin(day.to); m += len) out.push(fromMin(m));
+  return out;
+}
+function slotStart(key, slot){ const d = parseKey(key); const m = toMin(slot); d.setHours(Math.floor(m/60), m%60, 0, 0); return d; }
+function earliestPickup(){ return new Date(Date.now() + cartLead() * 3600e3); }
+function isSlotSelectable(key, slot){
+  if(!slot) return false;
+  if(slotStart(key, slot) < earliestPickup()) return false;
+  const c = slotCache[key];
+  return !(c && (c.counts[slot] || 0) >= c.capacity);
+}
+function availableDays(){
+  const out = [], today = new Date(); today.setHours(0,0,0,0);
+  const early = earliestPickup();
+  for(let i = 0; i <= (config.maxDaysAhead || 14); i++){
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    const key = dateKey(d);
+    const slots = slotsForDate(key);
+    const ok = slots.some(s => slotStart(key, s) >= early);
+    out.push({ key, d, ok, closed: slots.length === 0 });
+  }
+  return out;
+}
+function longDate(key){
+  const s = parseKey(key).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+const slotLabel = s => `${s} – ${fromMin(toMin(s) + (config.slotMinutes || 30))}`;
+const slotShort = s => `${s}–${fromMin(toMin(s) + (config.slotMinutes || 30))}`;
+
+function renderDays(){
+  const days = availableDays();
+  if(!pickup.date || !days.find(d => d.key === pickup.date && d.ok)){
+    const first = days.find(d => d.ok);
+    pickup.date = first ? first.key : null;
+    pickup.slot = null;
+  }
+  const todayKey = dateKey(new Date());
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  $("#days").innerHTML = days.map(d => {
+    const top = d.key === todayKey ? "Hoy" : d.key === dateKey(tomorrow) ? "Mañana" : DAY_SHORT[d.d.getDay()];
+    const bottom = d.closed ? "Cerrado" : !d.ok ? "Completo" : MONTH_SHORT[d.d.getMonth()];
+    return `<button type="button" class="day" data-day="${d.key}" aria-pressed="${d.key === pickup.date}" ${d.ok ? "" : "disabled"}
+              aria-label="${longDate(d.key)}${d.ok ? "" : d.closed ? ", cerrado" : ", sin tramos disponibles"}">
+              <small>${top}</small><b>${d.d.getDate()}</b><span>${bottom}</span></button>`;
+  }).join("");
+  const sel = $("#days .day[aria-pressed='true']");
+  if(sel) sel.scrollIntoView({ block: "nearest", inline: "nearest" });
+  renderSlots();
+}
+
+async function fetchSlots(key){
+  if(!SHEET_SCRIPT_URL) return;
+  const c = slotCache[key];
+  if(c && Date.now() - c.at < 60e3) return;
+  try{
+    const res = await fetch(`${SHEET_SCRIPT_URL}?action=slots&date=${key}`);
+    const data = await res.json();
+    if(data && data.success) slotCache[key] = { at: Date.now(), capacity: data.capacity, counts: data.counts || {} };
+  }catch(e){ /* sin conexión: mostramos los tramos según horario */ }
+}
+
+async function renderSlots(){
+  const wrap = $("#slotsWrap");
+  const key = pickup.date;
+  if(!key){
+    wrap.innerHTML = `<p class="hint">No hay días disponibles con la antelación que necesita tu encargo. Llámanos al <a href="tel:+${config.phone}">${prettyPhone()}</a> y lo miramos.</p>`;
+    updateFoot();
+    return;
+  }
+  if(SHEET_SCRIPT_URL && !slotCache[key]) wrap.innerHTML = `<div class="loading">Comprobando huecos libres…</div>`;
+  await fetchSlots(key);
+  if(pickup.date !== key) return; // el usuario cambió de día mientras cargaba
+  const c = slotCache[key];
+  const early = earliestPickup();
+  const groups = [["Mañana", s => toMin(s) < 12*60], ["Mediodía", s => toMin(s) >= 12*60 && toMin(s) < 16*60], ["Tarde", s => toMin(s) >= 16*60]];
+  const slots = slotsForDate(key);
+  if(pickup.slot && !isSlotSelectable(key, pickup.slot)) pickup.slot = null;
+  wrap.innerHTML = (slotNotice ? `<div class="form-error show" role="alert">${esc(slotNotice)}</div>` : "") + groups.map(([name, test]) => {
+    const g = slots.filter(test);
+    if(!g.length) return "";
+    return `<div class="slot-group"><h4>${name}</h4><div class="slots">${g.map(s => {
+      const tooSoon = slotStart(key, s) < early;
+      const left = c ? c.capacity - (c.counts[s] || 0) : null;
+      const full = left !== null && left <= 0;
+      const em = tooSoon ? "No llegamos" : full ? "Completo" : left !== null && left <= 2 ? `Quedan ${left}` : "Libre";
+      const dis = tooSoon || full;
+      return `<button type="button" class="slot ${!dis && left !== null && left <= 2 ? "few" : ""}" data-slot="${s}" aria-pressed="${s === pickup.slot}" ${dis ? "disabled" : ""}>
+                ${slotShort(s)}<em>${em}</em></button>`;
+    }).join("")}</div></div>`;
+  }).join("");
+  const lead = cartLead();
+  wrap.insertAdjacentHTML("beforeend", `<p class="hint">Tramos de ${config.slotMinutes || 30} minutos. ${lead ? `Tu encargo necesita al menos ${lead >= 24 ? Math.round(lead/24) + (lead >= 48 ? " días" : " día") : lead + " horas"} de preparación.` : ""}</p>`);
+  updateFoot();
+}
+
+$("#days").addEventListener("click", e => {
+  const b = e.target.closest("[data-day]");
+  if(!b || b.disabled) return;
+  pickup.date = b.dataset.day; pickup.slot = null;
+  document.querySelectorAll("#days .day").forEach(x => x.setAttribute("aria-pressed", x === b));
+  renderSlots();
+});
+$("#slotsWrap").addEventListener("click", e => {
+  const b = e.target.closest("[data-slot]");
+  if(!b || b.disabled) return;
+  pickup.slot = b.dataset.slot;
+  slotNotice = "";
+  const notice = $("#slotsWrap .form-error"); if(notice) notice.remove();
+  document.querySelectorAll("#slotsWrap .slot").forEach(x => x.setAttribute("aria-pressed", x === b));
+  updateFoot();
+});
+
+/* ---------- HOJA DEL ENCARGO ---------- */
+function renderCartLines(){
+  const entries = cartEntries();
+  if(!entries.length){
+    $("#cartLines").innerHTML = `<div class="empty"><p>Tu cesta está vacía.</p><p style="margin-top:12px"><button class="btn small" type="button" id="goShop">Ver el catálogo</button></p></div>`;
+    $("#leadNote").innerHTML = "";
+    $("#goShop").onclick = () => { closeOrder(); location.hash = "#catalogo"; };
+    updateFoot();
+    return;
+  }
+  $("#cartLines").innerHTML = entries.map(({ item, qty }) => `
+    <div class="line">
+      <div class="mini tone-${esc(item.tone || "sole")}">${artFor(item)}</div>
+      <div class="info"><b>${esc(item.name)}</b><span>${fmt(item.price)} / ${esc(item.unit || "ud.")} · ${fmt(item.price * qty)}</span></div>
+      <div class="stepper" role="group" aria-label="Cantidad de ${esc(item.name)}">
+        <button type="button" data-dec="${item.id}" aria-label="Quitar uno">−</button>
+        <output>${qty}</output>
+        <button type="button" data-inc="${item.id}" aria-label="Añadir uno">+</button>
+      </div>
+    </div>`).join("");
+  const lead = cartLead();
+  const big = entries.filter(e => e.item.lead === lead).map(e => e.item.name);
+  $("#leadNote").innerHTML = lead >= 12 ? `<div class="lead-note">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span><b>${esc(big.join(", "))}</b> necesita${big.length > 1 ? "n" : ""} ${lead >= 24 ? Math.round(lead/24) + (lead >= 48 ? " días" : " día") : lead + " horas"} de antelación: lo amasamos y fermentamos solo para ti.</span></div>` : "";
+  updateFoot();
+}
+
+function renderRecap(){
+  $("#recap").innerHTML = `<span>Recoges el</span><b>${longDate(pickup.date)}</b>
+    <span>entre las ${slotLabel(pickup.slot).replace(" – ", " y las ")} · ${cartCount()} producto${cartCount() === 1 ? "" : "s"} · ${fmt(cartTotal())}</span>
+    <button type="button" id="changePickup">Cambiar día u hora</button>`;
+  $("#changePickup").onclick = () => goStep(2);
+  const saved = storeGet("fb_customer");
+  if(saved){
+    if(!$("#cName").value) $("#cName").value = saved.name || "";
+    if(!$("#cPhone").value) $("#cPhone").value = saved.phone || "";
+    if(!$("#cEmail").value) $("#cEmail").value = saved.email || "";
+  }
+}
+
+const TITLES = { 1: "Tu encargo", 2: "¿Cuándo lo recoges?", 3: "Tus datos", 4: "¡Hecho!" };
+function goStep(n){
+  step = n;
+  document.querySelectorAll(".step-pane").forEach(p => p.classList.toggle("on", Number(p.dataset.step) === n));
+  $("#sheetTitle").textContent = TITLES[n];
+  $("#backBtn").hidden = n === 1 || n === 4;
+  $("#progress").style.display = n === 4 ? "none" : "flex";
+  document.querySelectorAll("#progress i").forEach((b, i) => b.classList.toggle("on", i < n));
+  $("#sheetFoot").style.display = n === 4 ? "none" : "flex";
+  $("#formError").classList.remove("show");
+  if(n === 1) renderCartLines();
+  if(n === 2) renderDays();
+  if(n === 3) renderRecap();
+  $("#sheetBody").scrollTop = 0;
+  updateFoot();
+}
+
+function updateFoot(){
+  const btn = $("#nextBtn");
+  if(step === 1){ btn.textContent = "Elegir día y hora"; btn.disabled = cartCount() === 0 || config.pause.active; }
+  if(step === 2){ btn.textContent = pickup.slot ? "Continuar" : "Elige un tramo"; btn.disabled = !pickup.slot; }
+  if(step === 3){ btn.textContent = "Confirmar encargo"; btn.disabled = false; }
+}
+
+function openOrder(){
+  if(lastOrder && step === 4){ /* reabrir tras confirmar: empezamos de nuevo */ }
+  $("#orderOverlay").classList.add("show");
+  $("#orderOverlay").setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  goStep(1);
+  renderCartBar();
+  setTimeout(() => $("#closeBtn").focus(), 50);
+}
+function closeOrder(){
+  $("#orderOverlay").classList.remove("show");
+  $("#orderOverlay").setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  renderCartBar();
+}
+$("#openCartTop").onclick = openOrder;
+$("#openCartBar").onclick = openOrder;
+$("#closeBtn").onclick = closeOrder;
+$("#doneBtn").onclick = closeOrder;
+$("#backBtn").onclick = () => goStep(step - 1);
+$("#orderOverlay").addEventListener("click", e => { if(e.target.id === "orderOverlay") closeOrder(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && $("#orderOverlay").classList.contains("show")) closeOrder(); });
+
+$("#nextBtn").onclick = () => {
+  if(step === 1) goStep(2);
+  else if(step === 2 && pickup.slot) goStep(3);
+  else if(step === 3) submitOrder();
+};
+
+/* ---------- ENVÍO ---------- */
+function validate(){
+  const name = $("#cName").value.trim();
+  const phone = $("#cPhone").value.replace(/[^\d+]/g, "");
+  const email = $("#cEmail").value.trim();
+  const checks = [
+    ["#fName", name.length >= 2],
+    ["#fPhone", /^\+?\d{9,15}$/.test(phone)],
+    ["#fEmail", !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)]
+  ];
+  checks.forEach(([sel, ok]) => $(sel).classList.toggle("invalid", !ok));
+  const firstBad = checks.find(([, ok]) => !ok);
+  if(firstBad){ $(firstBad[0] + " input").focus(); return null; }
+  if(!$("#cOk").checked){ showError("Marca la casilla para poder guardar tu encargo."); return null; }
+  return { name, phone, email, notes: $("#cNotes").value.trim() };
+}
+function showError(msg){ const el = $("#formError"); el.textContent = msg; el.classList.add("show"); }
+
+async function submitOrder(){
+  $("#formError").classList.remove("show");
+  const data = validate();
+  if(!data) return;
+  if(!isSlotSelectable(pickup.date, pickup.slot)){
+    showError("Ese tramo ya no está disponible. Elige otro, por favor.");
+    return;
+  }
+  const entries = cartEntries();
+  const lines = entries.map(e => ({ id: e.item.id, name: e.item.name, qty: e.qty, price: e.item.price }));
+  const itemsText = entries.map(e => `${e.qty}× ${e.item.name} — ${fmt(e.item.price * e.qty)}`).join("\n");
+  const total = cartTotal();
+
+  const btn = $("#nextBtn");
+  btn.disabled = true; btn.textContent = "Enviando…";
+  let number = null;
+  if(SHEET_SCRIPT_URL){
+    try{
+      const res = await fetch(SHEET_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "newOrder", date: pickup.date, slot: pickup.slot, ...data, items: itemsText, lines, total: total.toFixed(2) })
+      });
+      const r = await res.json();
+      if(r.success) number = r.orderNumber;
+      else if(r.error === "full"){
+        delete slotCache[pickup.date];
+        pickup.slot = null;
+        btn.disabled = false; updateFoot();
+        slotNotice = "Justo se ha llenado ese tramo. Elige otro, por favor.";
+        goStep(2);
+        return;
+      } else if(r.error === "pause"){
+        config.pause = { active: true, message: r.message || "" };
+        renderPause();
+        showError(r.message || "Ahora mismo no aceptamos encargos online.");
+        btn.disabled = false; updateFoot();
+        return;
+      } else {
+        throw new Error(r.error || "error");
+      }
+    }catch(err){
+      showError(`No hemos podido enviar el encargo. Revisa tu conexión e inténtalo de nuevo, o llámanos al ${prettyPhone()}.`);
+      btn.disabled = false; updateFoot();
+      return;
+    }
+  }else{
+    number = "P-" + String(Date.now()).slice(-4); // modo prueba sin servidor
+  }
+
+  storeSet("fb_customer", { name: data.name, phone: data.phone, email: data.email });
+  lastOrder = { number, date: pickup.date, slot: pickup.slot, itemsText, total, ...data };
+  cart = {}; saveCart();
+  delete slotCache[pickup.date];
+  renderCatalog(); renderCartBar();
+  $("#dataForm").reset();
+  $("#cOk").checked = false;
+  showConfirmation();
+}
+
+function showConfirmation(){
+  const o = lastOrder;
+  $("#tNumber").textContent = "#" + o.number;
+  $("#tDay").textContent = longDate(o.date);
+  $("#tSlot").textContent = `Entre las ${slotLabel(o.slot).replace(" – ", " y las ")}`;
+  $("#tItems").textContent = `${o.itemsText}\n\nTotal: ${fmt(o.total)}`;
+  const msg = [
+    `🥖 Encargo #${o.number} — Forno Bomba`,
+    `Recogida: ${longDate(o.date)}, ${slotLabel(o.slot)}`,
+    "", o.itemsText, "", `Total: ${fmt(o.total)} (pago en el local)`,
+    "", `Nombre: ${o.name}`, `Teléfono: ${o.phone}`, o.notes ? `Notas: ${o.notes}` : ""
+  ].filter((l, i, a) => !(l === "" && a[i-1] === "")).join("\n").trim();
+  const wa = $("#waBtn");
+  wa.style.display = config.whatsappEnabled ? "" : "none";
+  wa.href = `https://wa.me/${config.phone}?text=${encodeURIComponent(msg)}`;
+  wa.textContent = SHEET_SCRIPT_URL ? "Enviar copia por WhatsApp" : "Enviar encargo por WhatsApp";
+  goStep(4);
+}
+
+$("#icsBtn").onclick = () => {
+  const o = lastOrder; if(!o) return;
+  const start = slotStart(o.date, o.slot);
+  const end = new Date(start.getTime() + (config.slotMinutes || 30) * 60e3);
+  const f = d => `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  const ics = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Forno Bomba//Encargos//ES", "BEGIN:VEVENT",
+    `UID:fornobomba-${o.number}-${o.date}@encargos`, `DTSTAMP:${f(new Date())}`,
+    `DTSTART;TZID=Europe/Madrid:${f(start)}`, `DTEND;TZID=Europe/Madrid:${f(end)}`,
+    `SUMMARY:Recoger encargo #${o.number} · Forno Bomba`,
+    "LOCATION:Carrer del Vallespir\\, 24\\, 08014 Barcelona",
+    `DESCRIPTION:${o.itemsText.replace(/\n/g, "\\n")}\\nTotal: ${fmt(o.total)} (pago en el local)`,
+    "END:VEVENT", "END:VCALENDAR"
+  ].join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+  a.download = `encargo-forno-bomba-${o.number}.ics`;
+  document.body.appendChild(a); a.click(); a.remove();
+};
+
+/* ---------- VARIOS ---------- */
+function prettyPhone(){
+  const p = String(config.phone).replace(/^34/, "");
+  return p.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3");
+}
+function renderHours(){
+  const todayIdx = (new Date().getDay() + 6) % 7; // lunes = 0
+  $("#hoursTable").innerHTML = OPENING_HOURS.map(([d, h], i) => `<tr class="${i === todayIdx ? "today" : ""}"><td>${d}${i === todayIdx ? " · hoy" : ""}</td><td>${h}</td></tr>`).join("");
+  const [, h] = OPENING_HOURS[todayIdx];
+  $("#heroToday").textContent = h === "Cerrado" ? "Hoy cerrado · Ma–Do abierto" : `Hoy ${h}`;
+  $("#telText").textContent = prettyPhone();
+  $("#telLink").href = `tel:+${config.phone}`;
+}
+function renderPause(){
+  const b = $("#pauseBanner");
+  b.textContent = config.pause.active ? (config.pause.message || "Ahora mismo no aceptamos encargos online. ¡Vuelve pronto!") : "";
+  b.classList.toggle("show", !!config.pause.active);
+  updateFoot();
+}
+function renderHeroScene(){
+  // Bodegón del cartel: focaccia, pagnotta y buns.
+  const inner = a => ART[a]().replace(/<svg[^>]*>|<\/svg>/g, "").replace(SHADOW, "");
+  $("#heroScene").innerHTML = `<svg viewBox="0 0 440 300" aria-hidden="true">
+    <ellipse cx="220" cy="284" rx="210" ry="13" fill="#1F1A14" opacity=".2"/>
+    <g transform="translate(150 -6) scale(1.45)">${inner("loaf")}</g>
+    <g transform="translate(-14 70) scale(1.3)">${inner("focaccia")}</g>
+    <g transform="translate(212 128) scale(1.0)">${inner("bun")}</g>
+    <g transform="translate(300 150) scale(.82)">${inner("knot")}</g>
+  </svg>`;
+}
+
+async function loadRemoteConfig(){
+  if(!SHEET_SCRIPT_URL) return;
+  try{
+    const res = await fetch(`${SHEET_SCRIPT_URL}?action=config`);
+    const r = await res.json();
+    ["phone","whatsappEnabled","slotMinutes","slotCapacity","maxDaysAhead","schedule","closedDates","pause","catalog"].forEach(k => {
+      if(r[k] !== undefined && r[k] !== null) config[k] = r[k];
+    });
+  }catch(e){ /* sin conexión: seguimos con la configuración por defecto */ }
+}
+
+(async function init(){
+  renderHeroScene();
+  renderHours();
+  renderCatalog();
+  renderCartBar();
+  await loadRemoteConfig();
+  // Quitamos de la cesta productos que ya no existen en el catálogo.
+  Object.keys(cart).forEach(id => { if(!itemById(id)) delete cart[id]; });
+  saveCart();
+  renderHours(); renderCatalog(); renderCartBar(); renderPause();
+})();
+</script>
+</body>
+</html>

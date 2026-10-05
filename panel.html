@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1F1A14">
+<meta name="robots" content="noindex">
+<title>Forno Bomba — Panel de encargos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --crema:#F5EEE1; --paper:#FFFBF4; --ink:#1F1A14; --muted:#6B6155; --line:#E3D8C6;
+    --bomba:#E5432B; --bomba-deep:#B9301C; --sole:#F4B42E; --pistacchio:#A9C98A; --cielo:#A9CFE6; --rosa:#F4BBAE;
+    --gutter:16px;
+    --display:'Bricolage Grotesque', 'Arial Black', system-ui, sans-serif;
+    --serif:'Instrument Serif', Georgia, serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  [hidden]{ display:none !important; }
+  body{ background:var(--crema); color:var(--ink); font-family:var(--display); font-size:15px; line-height:1.45; min-height:100vh; }
+  button, input, select, textarea{ font:inherit; color:inherit; }
+  button{ cursor:pointer; }
+  :focus-visible{ outline:3px solid var(--ink); outline-offset:2px; }
+  .wrap{ max-width:1200px; margin:0 auto; padding:0 var(--gutter); }
+  .num{ font-variant-numeric:tabular-nums; }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1.5px solid var(--ink); background:var(--ink); color:var(--paper);
+        font-weight:700; padding:10px 16px; border-radius:999px; line-height:1; text-decoration:none; white-space:nowrap; }
+  .btn.light{ background:var(--paper); color:var(--ink); }
+  .btn.red{ background:var(--bomba); color:#fff; }
+  .btn.small{ padding:8px 12px; font-size:13.5px; }
+  .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+  input[type=text], input[type=password], input[type=number], input[type=tel], input[type=date], input[type=time], input[type=url], textarea, select{
+    padding:10px 12px; border-radius:12px; border:1.5px solid var(--ink); background:var(--paper); font-size:15px; width:100%;
+  }
+  input[type=checkbox]{ width:20px; height:20px; accent-color:var(--bomba); }
+
+  /* Login */
+  .login{ min-height:100vh; display:grid; place-items:center; padding:20px var(--gutter); }
+  .login form{ width:min(420px, 100%); background:var(--paper); border:1.5px solid var(--ink); border-radius:24px; padding:24px; display:grid; gap:14px; }
+  .login h1{ font-weight:800; font-size:30px; letter-spacing:-.02em; line-height:1; }
+  .login h1 span{ font-family:var(--serif); font-style:italic; font-weight:400; color:var(--bomba); }
+  .login label{ display:grid; gap:6px; font-weight:700; font-size:14px; }
+  .login .err{ color:var(--bomba-deep); font-weight:600; font-size:14px; min-height:1em; }
+  .login small{ color:var(--muted); font-weight:500; }
+
+  /* Cabecera */
+  header{ position:sticky; top:0; z-index:20; background:var(--ink); color:var(--paper); }
+  header .wrap{ display:flex; align-items:center; gap:10px; min-height:60px; flex-wrap:wrap; padding-block:8px; }
+  header .brand{ font-weight:800; font-size:18px; text-transform:uppercase; letter-spacing:-.01em; white-space:nowrap; }
+  header .brand span{ font-family:var(--serif); font-style:italic; text-transform:none; font-weight:400; color:var(--sole); margin-left:4px; }
+  .tabs{ display:flex; gap:4px; background:#3a332a; border-radius:999px; padding:4px; }
+  .tabs button{ border:0; background:none; color:#d9cdbb; font-weight:700; padding:8px 14px; border-radius:999px; }
+  .tabs button[aria-selected="true"]{ background:var(--paper); color:var(--ink); }
+  header .right{ margin-left:auto; display:flex; gap:8px; align-items:center; }
+  .pause-btn{ border:1.5px solid var(--paper); background:none; color:var(--paper); }
+  .pause-btn.on{ background:var(--sole); color:var(--ink); border-color:var(--sole); }
+  .pause-strip{ display:none; background:var(--sole); padding:8px var(--gutter); text-align:center; font-weight:700; border-bottom:1.5px solid var(--ink); }
+  .pause-strip.show{ display:block; }
+
+  main{ padding:20px 0 60px; }
+  .view{ display:none; }
+  .view.on{ display:block; }
+
+  /* Barra de día */
+  .daybar{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:16px; }
+  .daybar h2{ font-weight:800; font-size:clamp(24px, 4vw, 34px); letter-spacing:-.02em; line-height:1.05; margin-right:auto; }
+  .daybar h2 small{ display:block; font-size:14px; font-weight:600; color:var(--muted); letter-spacing:0; }
+  .daybar .nav{ display:flex; gap:6px; align-items:center; }
+  .daybar input[type=date]{ width:auto; }
+  .icon{ width:40px; height:40px; border-radius:50%; border:1.5px solid var(--ink); background:var(--paper); display:grid; place-items:center; font-size:18px; font-weight:800; }
+
+  .kpis{ display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:16px; }
+  @media (min-width:700px){ .kpis{ grid-template-columns:repeat(4, 1fr); } }
+  .kpi{ background:var(--paper); border:1.5px solid var(--ink); border-radius:18px; padding:12px 14px; }
+  .kpi span{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  .kpi b{ display:block; font-size:28px; font-weight:800; line-height:1.1; font-variant-numeric:tabular-nums; }
+
+  .cols{ display:grid; gap:16px; align-items:start; }
+  @media (min-width:960px){ .cols{ grid-template-columns:320px 1fr; } .prod{ position:sticky; top:84px; } }
+  .box{ background:var(--paper); border:1.5px solid var(--ink); border-radius:20px; padding:16px; }
+  .box h3{ font-weight:800; font-size:20px; letter-spacing:-.01em; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .box h3 .btn{ margin-left:auto; }
+  .prod ul{ list-style:none; }
+  .prod li{ display:flex; gap:10px; padding:8px 0; border-bottom:1px dashed var(--line); align-items:baseline; }
+  .prod li b{ min-width:36px; font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--bomba-deep); }
+  .muted{ color:var(--muted); }
+
+  .slot{ margin-bottom:18px; }
+  .slot-h{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .slot-h b{ font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .slot-h span{ font-size:13px; font-weight:700; padding:3px 10px; border-radius:999px; background:var(--paper); border:1.5px solid var(--ink); }
+  .slot-h span.full{ background:var(--bomba); color:#fff; }
+  .slot-h.now b::after{ content:" · ahora"; color:var(--bomba-deep); }
+  .orders{ display:grid; gap:10px; }
+  @media (min-width:700px){ .orders{ grid-template-columns:repeat(2, 1fr); } }
+  .order{ background:var(--paper); border:1.5px solid var(--ink); border-radius:18px; padding:14px; display:grid; gap:8px; border-left-width:8px; }
+  .order[data-status="Pendiente"]{ border-left-color:var(--sole); }
+  .order[data-status="Preparado"]{ border-left-color:var(--pistacchio); }
+  .order[data-status="Recogido"]{ opacity:.55; border-left-color:var(--ink); }
+  .order[data-status="Cancelado"]{ opacity:.45; border-left-color:var(--bomba); text-decoration:line-through; }
+  .order .h{ display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
+  .order .h b{ font-size:20px; font-weight:800; }
+  .order .h strong{ font-weight:700; font-size:16px; }
+  .order .h a{ margin-left:auto; font-weight:700; color:var(--ink); }
+  .order pre{ font-family:inherit; white-space:pre-wrap; font-size:14.5px; }
+  .order .notes{ background:#FFF3C9; border-radius:10px; padding:8px 10px; font-size:14px; }
+  .order .f{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .order .f .total{ flex-basis:100%; font-weight:800; font-variant-numeric:tabular-nums; }
+  .st{ border:1.5px solid var(--ink); background:var(--paper); border-radius:999px; padding:6px 10px; font-size:13px; font-weight:700; }
+  .st[aria-pressed="true"]{ background:var(--ink); color:var(--paper); }
+  .empty{ text-align:center; padding:40px 16px; color:var(--muted); }
+  .empty b{ display:block; font-size:22px; color:var(--ink); margin-bottom:4px; }
+  .toolbar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+  .toolbar label{ display:flex; gap:8px; align-items:center; font-weight:600; font-size:14px; }
+  .updated{ font-size:13px; color:var(--muted); margin-left:auto; }
+
+  /* Configuración */
+  .cfg{ display:grid; gap:16px; }
+  @media (min-width:960px){ .cfg{ grid-template-columns:1fr 1fr; } .cfg .wide{ grid-column:1 / -1; } }
+  .row{ display:grid; gap:6px; margin-bottom:12px; }
+  .row label{ font-weight:700; font-size:14px; }
+  .row small{ color:var(--muted); font-size:13px; }
+  .grid3{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .sched{ width:100%; border-collapse:collapse; }
+  .sched td{ padding:6px 4px; border-bottom:1px dashed var(--line); vertical-align:middle; }
+  .sched td:first-child{ font-weight:700; width:90px; }
+  .sched input[type=time]{ padding:8px; }
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .chip{ display:inline-flex; gap:6px; align-items:center; border:1.5px solid var(--ink); border-radius:999px; padding:4px 6px 4px 12px; background:var(--crema); font-weight:600; font-size:14px; }
+  .chip button{ width:24px; height:24px; border-radius:50%; border:0; background:var(--ink); color:var(--paper); font-size:14px; line-height:1; }
+  .cat-table{ width:100%; border-collapse:collapse; font-size:14px; }
+  .cat-table th{ text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:6px 4px; }
+  .cat-table td{ padding:6px 4px; border-top:1px dashed var(--line); vertical-align:middle; }
+  .cat-table input[type=number]{ width:90px; padding:8px; }
+  .cat-table td.c{ text-align:center; }
+  .scroll-x{ overflow-x:auto; }
+  .savebar{ position:sticky; bottom:0; background:var(--crema); border-top:1.5px solid var(--ink); padding:12px 0; margin-top:16px; display:flex; gap:10px; align-items:center; }
+  .savebar span{ font-weight:600; }
+  .toast{ position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:12px 18px; border-radius:999px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .2s; z-index:50; }
+  .toast.show{ opacity:1; }
+
+  @media print{
+    header, .daybar .nav, .toolbar, .kpis, .order .f .st, .pause-strip, .box h3 .btn{ display:none !important; }
+    body{ background:#fff; }
+    .cols{ grid-template-columns:1fr; }
+    .order, .box{ break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ACCESO -->
+<div class="login" id="loginView">
+  <form id="loginForm">
+    <h1>Forno Bomba <span>panel</span></h1>
+    <p class="muted">Encargos del día, producción y configuración de la web.</p>
+    <label id="urlRow">URL de Apps Script
+      <input type="url" id="lUrl" placeholder="https://script.google.com/macros/s/…/exec" required>
+      <small>Solo hace falta la primera vez en este dispositivo.</small>
+    </label>
+    <label>Clave del panel
+      <input type="password" id="lKey" autocomplete="current-password">
+    </label>
+    <button class="btn red" type="submit" id="lBtn">Entrar</button>
+    <p class="err" id="lErr" role="alert"></p>
+  </form>
+</div>
+
+<!-- PANEL -->
+<div id="app" hidden>
+  <header>
+    <div class="wrap">
+      <div class="brand">Forno Bomba<span>panel</span></div>
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="orders">Encargos</button>
+        <button role="tab" aria-selected="false" data-tab="config">Configuración</button>
+      </div>
+      <div class="right">
+        <button class="btn small pause-btn" id="pauseBtn" type="button">Pausar encargos</button>
+        <button class="btn small light" id="logoutBtn" type="button">Salir</button>
+      </div>
+    </div>
+  </header>
+  <div class="pause-strip" id="pauseStrip">Encargos online en pausa: la web no acepta encargos nuevos.</div>
+
+  <main class="wrap">
+    <!-- ENCARGOS -->
+    <section class="view on" id="view-orders">
+      <div class="daybar">
+        <h2 id="dayTitle">Hoy<small></small></h2>
+        <div class="nav">
+          <button class="icon" id="prevDay" type="button" aria-label="Día anterior">‹</button>
+          <button class="btn small light" id="todayBtn" type="button">Hoy</button>
+          <button class="icon" id="nextDay" type="button" aria-label="Día siguiente">›</button>
+          <input type="date" id="dayPick" aria-label="Elegir día">
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><span>Encargos</span><b id="kCount">0</b></div>
+        <div class="kpi"><span>Por preparar</span><b id="kPending">0</b></div>
+        <div class="kpi"><span>Por recoger</span><b id="kReady">0</b></div>
+        <div class="kpi"><span>Importe</span><b id="kTotal">0 €</b></div>
+      </div>
+
+      <div class="cols">
+        <div class="box prod">
+          <h3>Para hornear <button class="btn small light" type="button" onclick="window.print()">Imprimir</button></h3>
+          <ul id="prodList"></ul>
+        </div>
+        <div>
+          <div class="toolbar">
+            <label><input type="checkbox" id="hideDone"> Ocultar recogidos y cancelados</label>
+            <button class="btn small light" id="refreshBtn" type="button">Actualizar</button>
+            <span class="updated" id="updated"></span>
+          </div>
+          <div id="timeline"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIGURACIÓN -->
+    <section class="view" id="view-config">
+      <div class="cfg">
+        <div class="box">
+          <h3>Pausa</h3>
+          <div class="row"><label><input type="checkbox" id="cPause"> Pausar los encargos online</label></div>
+          <div class="row"><label for="cPauseMsg">Mensaje que verán los clientes</label>
+            <input type="text" id="cPauseMsg" maxlength="160" placeholder="Estamos de vacaciones hasta el día 20. ¡A presto!"></div>
+        </div>
+
+        <div class="box">
+          <h3>Recogida</h3>
+          <div class="grid3">
+            <div class="row"><label for="cCap">Encargos por tramo</label><input type="number" id="cCap" min="1" max="50"></div>
+            <div class="row"><label for="cMin">Minutos por tramo</label>
+              <select id="cMin"><option value="15">15</option><option value="20">20</option><option value="30">30</option><option value="60">60</option></select></div>
+            <div class="row"><label for="cDays">Días vista</label><input type="number" id="cDays" min="1" max="60"></div>
+          </div>
+          <small class="muted">La antelación mínima de cada producto se cambia en el catálogo, más abajo.</small>
+        </div>
+
+        <div class="box">
+          <h3>Horario de recogida</h3>
+          <table class="sched" id="schedTable"></table>
+        </div>
+
+        <div class="box">
+          <h3>Días cerrados</h3>
+          <p class="muted">Festivos o vacaciones: esos días no se podrán elegir.</p>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <input type="date" id="cClosedDate" aria-label="Día cerrado">
+            <button class="btn small" type="button" id="addClosed">Añadir</button>
+          </div>
+          <div class="chips" id="closedChips"></div>
+        </div>
+
+        <div class="box wide">
+          <h3>Catálogo</h3>
+          <div class="scroll-x">
+            <table class="cat-table">
+              <thead><tr><th>Producto</th><th>Precio (€)</th><th>Antelación (h)</th><th class="c">Agotado</th><th class="c">Oculto</th></tr></thead>
+              <tbody id="catBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>Contacto</h3>
+          <div class="row"><label for="cPhone">Teléfono / WhatsApp del forno</label><input type="tel" id="cPhone" placeholder="34673473647"><small>Con prefijo de país y sin espacios.</small></div>
+          <div class="row"><label><input type="checkbox" id="cWa"> Ofrecer al cliente enviar copia del encargo por WhatsApp</label></div>
+        </div>
+
+        <div class="box">
+          <h3>Clave del panel</h3>
+          <div class="row"><label for="cPw">Nueva clave</label><input type="text" id="cPw" autocomplete="off"><small>Quien tenga esta clave verá los datos de los clientes. Déjala vacía y no se pedirá clave (no recomendado).</small></div>
+        </div>
+      </div>
+      <div class="savebar">
+        <button class="btn red" type="button" id="saveCfg">Guardar cambios</button>
+        <span id="saveMsg" class="muted"></span>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="datos.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const fmt = n => Number(n || 0).toFixed(2).replace(".", ",") + " €";
+const pad = n => String(n).padStart(2, "0");
+const dateKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseKey = k => { const [y, m, d] = k.split("-").map(Number); return new Date(y, m-1, d); };
+const toMin = t => { const [h, m] = t.split(":").map(Number); return h*60 + m; };
+const fromMin = m => `${pad(Math.floor(m/60))}:${pad(m%60)}`;
+const DAYS = [["tue","Martes"],["wed","Miércoles"],["thu","Jueves"],["fri","Viernes"],["sat","Sábado"],["sun","Domingo"],["mon","Lunes"]];
+const STATUSES = ["Pendiente", "Preparado", "Recogido", "Cancelado"];
+
+let session = null;     // { url, key }
+let config = null;      // configuración completa (incluye clave)
+let orders = [];
+let day = dateKey(new Date());
+let refreshTimer = null;
+
+function storeGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function storeSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ /* sin almacenamiento */ } }
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2200); }
+
+async function api(action, extra){
+  const res = await fetch(session.url, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action, key: session.key, ...(extra || {}) })
+  });
+  const data = await res.json();
+  if(data.error === "auth"){ logout("La clave ya no es válida. Vuelve a entrar."); throw new Error("auth"); }
+  return data;
+}
+
+/* ---------- ACCESO ---------- */
+const saved = storeGet("fb_panel");
+$("#lUrl").value = (saved && saved.url) || SHEET_SCRIPT_URL || "";
+if(SHEET_SCRIPT_URL) $("#urlRow").hidden = true;
+
+$("#loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  $("#lErr").textContent = "";
+  $("#lBtn").disabled = true; $("#lBtn").textContent = "Entrando…";
+  session = { url: $("#lUrl").value.trim(), key: $("#lKey").value };
+  try{
+    const r = await api("login");
+    if(!r.success) throw new Error();
+    storeSet("fb_panel", session);
+    await start();
+  }catch(err){
+    if(err.message !== "auth") $("#lErr").textContent = "No se ha podido conectar. Revisa la URL y la clave.";
+    else $("#lErr").textContent = "Clave incorrecta.";
+  }finally{
+    $("#lBtn").disabled = false; $("#lBtn").textContent = "Entrar";
+  }
+});
+
+function logout(msg){
+  session = null;
+  storeSet("fb_panel", { url: $("#lUrl").value.trim() });
+  clearInterval(refreshTimer);
+  $("#app").hidden = true; $("#loginView").hidden = false;
+  $("#lKey").value = "";
+  if(msg) $("#lErr").textContent = msg;
+}
+$("#logoutBtn").onclick = () => logout();
+
+async function start(){
+  $("#loginView").hidden = true; $("#app").hidden = false;
+  await loadConfig();
+  setDay(dateKey(new Date()));
+  clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => { if(!document.hidden) loadOrders(true); }, 60e3);
+}
+
+/* ---------- PESTAÑAS ---------- */
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === "view-" + b.dataset.tab));
+  if(b.dataset.tab === "config") fillConfigForm();
+});
+
+/* ---------- CONFIGURACIÓN ---------- */
+async function loadConfig(){
+  const r = await api("adminConfig");
+  const remote = r.config || {};
+  config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  Object.keys(remote).forEach(k => { if(remote[k] !== undefined && remote[k] !== null) config[k] = remote[k]; });
+  if(!config.catalog || !config.catalog.length) config.catalog = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
+  renderPause();
+}
+
+function renderPause(){
+  const on = !!(config.pause && config.pause.active);
+  $("#pauseBtn").classList.toggle("on", on);
+  $("#pauseBtn").textContent = on ? "En pausa · reanudar" : "Pausar encargos";
+  $("#pauseStrip").classList.toggle("show", on);
+  if(on && config.pause.message) $("#pauseStrip").textContent = "En pausa — los clientes ven: “" + config.pause.message + "”";
+  else $("#pauseStrip").textContent = "Encargos online en pausa: la web no acepta encargos nuevos.";
+}
+
+$("#pauseBtn").onclick = async () => {
+  const on = !(config.pause && config.pause.active);
+  let message = (config.pause && config.pause.message) || "";
+  if(on){
+    const m = prompt("Mensaje para los clientes (opcional):", message || "Hoy no aceptamos más encargos online. ¡Gracias!");
+    if(m === null) return;
+    message = m;
+  }
+  try{
+    await api("saveConfig", { config: { pause: { active: on, message } } });
+    config.pause = { active: on, message };
+    renderPause();
+    toast(on ? "Encargos en pausa" : "Encargos reanudados");
+  }catch(e){ if(e.message !== "auth") toast("No se ha podido guardar"); }
+};
+
+function fillConfigForm(){
+  $("#cPause").checked = !!(config.pause && config.pause.active);
+  $("#cPauseMsg").value = (config.pause && config.pause.message) || "";
+  $("#cCap").value = config.slotCapacity;
+  $("#cMin").value = String(config.slotMinutes);
+  $("#cDays").value = config.maxDaysAhead;
+  $("#cPhone").value = config.phone || "";
+  $("#cWa").checked = !!config.whatsappEnabled;
+  $("#cPw").value = config.panelPassword || "";
+  $("#schedTable").innerHTML = DAYS.map(([k, name]) => {
+    const d = config.schedule[k];
+    return `<tr data-day="${k}"><td>${name}</td>
+      <td><label style="display:flex;gap:6px;align-items:center;font-weight:600"><input type="checkbox" class="sOpen" ${d ? "checked" : ""}> Abierto</label></td>
+      <td><input type="time" class="sFrom" value="${d ? d.from : "09:00"}" step="900" aria-label="Desde"></td>
+      <td><input type="time" class="sTo" value="${d ? d.to : "14:00"}" step="900" aria-label="Hasta"></td></tr>`;
+  }).join("");
+  renderClosed();
+  $("#catBody").innerHTML = config.catalog.map((it, i) => `
+    <tr data-i="${i}">
+      <td><b>${esc(it.name)}</b><br><span class="muted">${esc(it.unit || "")}</span></td>
+      <td><input type="number" class="pPrice" min="0" step="0.05" value="${it.price}" aria-label="Precio de ${esc(it.name)}"></td>
+      <td><input type="number" class="pLead" min="0" step="1" value="${it.lead}" aria-label="Antelación de ${esc(it.name)}"></td>
+      <td class="c"><input type="checkbox" class="pSold" ${it.soldOut ? "checked" : ""} aria-label="${esc(it.name)} agotado"></td>
+      <td class="c"><input type="checkbox" class="pHide" ${it.hidden ? "checked" : ""} aria-label="Ocultar ${esc(it.name)}"></td>
+    </tr>`).join("");
+  $("#saveMsg").textContent = "";
+}
+
+function renderClosed(){
+  const list = (config.closedDates || []).slice().sort();
+  $("#closedChips").innerHTML = list.length
+    ? list.map(d => `<span class="chip">${parseKey(d).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}<button type="button" data-rm="${d}" aria-label="Quitar">×</button></span>`).join("")
+    : `<span class="muted">Ninguno.</span>`;
+}
+$("#addClosed").onclick = () => {
+  const v = $("#cClosedDate").value;
+  if(!v) return;
+  config.closedDates = Array.from(new Set([...(config.closedDates || []), v]));
+  renderClosed();
+};
+$("#closedChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-rm]");
+  if(!b) return;
+  config.closedDates = (config.closedDates || []).filter(d => d !== b.dataset.rm);
+  renderClosed();
+});
+
+$("#saveCfg").onclick = async () => {
+  const schedule = {};
+  let bad = false;
+  document.querySelectorAll("#schedTable tr").forEach(tr => {
+    const open = tr.querySelector(".sOpen").checked;
+    const from = tr.querySelector(".sFrom").value, to = tr.querySelector(".sTo").value;
+    if(open && (!from || !to || toMin(from) >= toMin(to))) bad = true;
+    schedule[tr.dataset.day] = open ? { from, to } : null;
+  });
+  if(bad){ $("#saveMsg").textContent = "Revisa el horario: la hora de inicio debe ser anterior a la de fin."; return; }
+  document.querySelectorAll("#catBody tr").forEach(tr => {
+    const it = config.catalog[Number(tr.dataset.i)];
+    it.price = Math.max(0, parseFloat(tr.querySelector(".pPrice").value) || 0);
+    it.lead = Math.max(0, parseInt(tr.querySelector(".pLead").value, 10) || 0);
+    it.soldOut = tr.querySelector(".pSold").checked;
+    it.hidden = tr.querySelector(".pHide").checked;
+  });
+  const next = {
+    pause: { active: $("#cPause").checked, message: $("#cPauseMsg").value.trim() },
+    slotCapacity: Math.max(1, parseInt($("#cCap").value, 10) || 1),
+    slotMinutes: parseInt($("#cMin").value, 10),
+    maxDaysAhead: Math.max(1, parseInt($("#cDays").value, 10) || 14),
+    schedule,
+    closedDates: (config.closedDates || []).filter(d => d >= dateKey(new Date())),
+    catalog: config.catalog,
+    phone: $("#cPhone").value.replace(/\D/g, ""),
+    whatsappEnabled: $("#cWa").checked,
+    panelPassword: $("#cPw").value
+  };
+  $("#saveCfg").disabled = true; $("#saveMsg").textContent = "Guardando…";
+  try{
+    const r = await api("saveConfig", { config: next });
+    if(!r.success) throw new Error(r.error);
+    Object.assign(config, next);
+    if(session.key !== next.panelPassword){ session.key = next.panelPassword; storeSet("fb_panel", session); }
+    renderPause(); renderClosed();
+    $("#saveMsg").textContent = "Guardado. La web ya muestra los cambios.";
+    loadOrders(true);
+  }catch(e){
+    if(e.message !== "auth") $("#saveMsg").textContent = "No se ha podido guardar. Inténtalo otra vez.";
+  }finally{ $("#saveCfg").disabled = false; }
+};
+
+/* ---------- ENCARGOS ---------- */
+function setDay(k){
+  day = k;
+  $("#dayPick").value = k;
+  const d = parseKey(k);
+  const today = dateKey(new Date());
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+  const rel = k === today ? "Hoy" : k === dateKey(tomorrow) ? "Mañana" : d.toLocaleDateString("es-ES", { weekday: "long" });
+  $("#dayTitle").innerHTML = `${esc(rel.charAt(0).toUpperCase() + rel.slice(1))}<small>${esc(d.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" }))}</small>`;
+  orders = [];
+  render();
+  loadOrders();
+}
+function shiftDay(n){ const d = parseKey(day); d.setDate(d.getDate() + n); setDay(dateKey(d)); }
+$("#prevDay").onclick = () => shiftDay(-1);
+$("#nextDay").onclick = () => shiftDay(1);
+$("#todayBtn").onclick = () => setDay(dateKey(new Date()));
+$("#dayPick").onchange = e => { if(e.target.value) setDay(e.target.value); };
+$("#refreshBtn").onclick = () => loadOrders();
+$("#hideDone").onchange = () => { storeSet("fb_hideDone", $("#hideDone").checked); render(); };
+$("#hideDone").checked = !!storeGet("fb_hideDone");
+
+async function loadOrders(silent){
+  if(!session) return;
+  const want = day;
+  if(!silent) $("#updated").textContent = "Cargando…";
+  try{
+    const r = await api("listOrders", { from: want, to: want });
+    if(want !== day) return;
+    orders = (r.orders || []).filter(o => o.date === want);
+    render();
+    $("#updated").textContent = "Actualizado a las " + new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+  }catch(e){
+    if(e.message !== "auth") $("#updated").textContent = "Sin conexión — reintentando";
+  }
+}
+
+function render(){
+  const active = orders.filter(o => o.status !== "Cancelado");
+  $("#kCount").textContent = active.length;
+  $("#kPending").textContent = active.filter(o => o.status === "Pendiente").length;
+  $("#kReady").textContent = active.filter(o => o.status === "Preparado").length;
+  $("#kTotal").textContent = fmt(active.reduce((s, o) => s + (parseFloat(String(o.total).replace(",", ".")) || 0), 0));
+
+  // Producción del día: suma de cada producto (sin cancelados).
+  const prod = {};
+  active.forEach(o => (o.lines || []).forEach(l => { prod[l.name] = (prod[l.name] || 0) + Number(l.qty || 0); }));
+  const order = (config && config.catalog || DEFAULT_CATALOG).map(i => i.name);
+  const names = Object.keys(prod).sort((a, b) => (order.indexOf(a) + 1 || 999) - (order.indexOf(b) + 1 || 999));
+  $("#prodList").innerHTML = names.length
+    ? names.map(n => `<li><b>${prod[n]}</b><span>${esc(n)}</span></li>`).join("")
+    : `<li class="muted">Nada encargado para este día.</li>`;
+
+  const hide = $("#hideDone").checked;
+  const visible = orders.filter(o => !hide || (o.status !== "Recogido" && o.status !== "Cancelado"));
+  if(!visible.length){
+    $("#timeline").innerHTML = `<div class="box empty"><b>Sin encargos${hide && orders.length ? " pendientes" : ""}</b>${hide && orders.length ? "Todo recogido. ¡Bravi!" : "Cuando entre uno para este día aparecerá aquí."}</div>`;
+    return;
+  }
+  const bySlot = {};
+  visible.forEach(o => (bySlot[o.slot] = bySlot[o.slot] || []).push(o));
+  const now = new Date(), isToday = day === dateKey(now), nowMin = now.getHours()*60 + now.getMinutes();
+  const len = (config && config.slotMinutes) || 30, cap = (config && config.slotCapacity) || 6;
+  $("#timeline").innerHTML = Object.keys(bySlot).sort().map(slot => {
+    const list = bySlot[slot].sort((a, b) => a.orderNumber - b.orderNumber);
+    const used = orders.filter(o => o.slot === slot && o.status !== "Cancelado").length;
+    const current = isToday && nowMin >= toMin(slot) && nowMin < toMin(slot) + len;
+    return `<div class="slot"><div class="slot-h ${current ? "now" : ""}"><b>${slot}–${fromMin(toMin(slot) + len)}</b>
+        <span class="${used >= cap ? "full" : ""}">${used}/${cap}</span></div>
+      <div class="orders">${list.map(orderCard).join("")}</div></div>`;
+  }).join("");
+}
+
+function orderCard(o){
+  const phone = String(o.phone || "").replace(/[^\d+]/g, "");
+  return `<article class="order" data-status="${esc(o.status)}">
+    <div class="h"><b>#${esc(o.orderNumber)}</b><strong>${esc(o.name)}</strong>${phone ? `<a href="tel:${esc(phone)}">${esc(o.phone)}</a>` : ""}</div>
+    <pre>${esc(o.items)}</pre>
+    ${o.notes ? `<div class="notes">📝 ${esc(o.notes)}</div>` : ""}
+    <div class="f"><span class="total">${fmt(String(o.total).replace(",", "."))}</span>
+      ${STATUSES.map(s => `<button type="button" class="st" data-num="${esc(o.orderNumber)}" data-st="${s}" aria-pressed="${o.status === s}">${s}</button>`).join("")}
+    </div>
+  </article>`;
+}
+
+$("#timeline").addEventListener("click", async e => {
+  const b = e.target.closest("[data-st]");
+  if(!b) return;
+  const o = orders.find(x => String(x.orderNumber) === b.dataset.num);
+  if(!o || o.status === b.dataset.st) return;
+  if(b.dataset.st === "Cancelado" && !confirm(`¿Cancelar el encargo #${o.orderNumber} de ${o.name}? El tramo quedará libre.`)) return;
+  const prev = o.status;
+  o.status = b.dataset.st;
+  render();
+  try{
+    const r = await api("updateStatus", { orderNumber: o.orderNumber, status: o.status });
+    if(!r.success) throw new Error();
+  }catch(err){
+    o.status = prev; render();
+    if(err.message !== "auth") toast("No se ha podido cambiar el estado");
+  }
+});
+
+/* Entrada automática si este dispositivo ya tenía sesión */
+if(saved && saved.url && saved.key !== undefined){
+  session = saved;
+  api("login").then(r => { if(r.success) start(); else logout(); }).catch(() => { session = null; });
+}
+</script>
+</body>
+</html>
