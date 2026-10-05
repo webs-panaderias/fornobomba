@@ -18,8 +18,7 @@
  *      - Ejecutar como: Yo
  *      - Quién tiene acceso: Cualquier usuario
  * 4. Implementar, autoriza los permisos y copia la "URL de la aplicación web".
- * 5. Pega esa URL en SHEET_SCRIPT_URL de fornobomba/index.html y en
- *    fornobomba/panel.html (o en la pantalla de acceso del panel).
+ * 5. Pega esa URL en SHEET_SCRIPT_URL, en datos.js (la usan index.html y panel.html).
  *
  * Cada vez que cambies este código: Implementar > Gestionar implementaciones >
  * lápiz > Versión: Nueva versión > Implementar (así la URL no cambia).

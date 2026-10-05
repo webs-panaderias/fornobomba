@@ -10,6 +10,14 @@ Web para que los clientes encarguen pan, focaccia, pizza in teglia y buns, y los
 | `datos.js` | Los dos | URL del Apps Script, catálogo y configuración por defecto. |
 | `Code.gs` | Google Apps Script | Guarda encargos y configuración en una Google Sheet, reparte números y **controla el aforo por tramo** (aunque dos clientes encarguen a la vez). |
 
+## Publicar cambios
+
+- **Web y panel:** basta con subirlos a la rama `main`. Con GitHub Pages activado
+  (*Settings → Pages → Deploy from a branch → main / root*) se publican en uno o dos minutos.
+- **Code.gs:** no se publica desde GitHub. Pégalo en la Google Sheet (*Extensiones → Apps Script*), guarda y ve a
+  *Implementar → Gestionar implementaciones → lápiz → Versión: Nueva versión → Implementar*,
+  para mantener la misma URL.
+
 ## Reglas de los encargos
 
 - **Tramos de recogida** de 30 min dentro del horario de recogida (Lu–Vi 9:00–20:00, Sá 9:00–15:00, Do 9:30–14:00).
