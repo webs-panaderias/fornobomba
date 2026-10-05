@@ -91,6 +91,7 @@
   .foto{ position:relative; background:var(--papel); padding:7px 7px 9px; box-shadow:0 1px 2px rgba(43,33,26,.18), 0 8px 18px -10px rgba(43,33,26,.35); }
   .foto{ align-self:start; }
   .foto img{ width:100%; height:auto; aspect-ratio:3/4; object-fit:cover; }
+  .foto.ancha img{ aspect-ratio:4/3; }
   .foto figcaption{ font-size:13px; color:var(--gris); padding-top:6px; line-height:1.25; }
   .foto::before{
     content:""; position:absolute; top:-9px; left:50%; width:54px; height:18px; margin-left:-27px;
@@ -104,28 +105,17 @@
   @media (min-width:900px){
     .pared{ gap:18px 16px; }
     .foto:nth-child(1){ grid-column:1 / span 2; }
-    .foto:nth-child(2){ grid-column:3 / span 2; margin-top:40px; }
+    .foto:nth-child(2){ grid-column:3 / span 2; margin-top:46px; }
     .foto:nth-child(3){ grid-column:5 / span 2; margin-top:4px; }
-    .foto:nth-child(4){ grid-column:2 / span 2; margin-top:-30px; }
-    .foto:nth-child(5){ grid-column:4 / span 2; margin-top:4px; }
+    .foto:nth-child(4){ grid-column:2 / span 2; margin-top:-24px; }
+    .foto:nth-child(5){ grid-column:4 / span 2; margin-top:28px; }
   }
 
-  /* ---------- LUNES ---------- */
-  .lunes{ background:var(--granate); color:var(--papel); padding:46px 0; }
-  .lunes .wrap{ display:grid; gap:26px; }
-  @media (min-width:900px){ .lunes .wrap{ grid-template-columns:5fr 7fr; gap:56px; align-items:center; } }
-  .horario{ display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:4px; text-align:center; font-variant-numeric:tabular-nums; }
-  .horario div{ padding:10px 2px; border-top:2px solid rgba(243,239,229,.25); font-size:13px; line-height:1.3; }
-  .horario div b{ display:block; font-weight:600; font-size:15px; margin-bottom:4px; }
-  .horario div.hoy{ border-top-color:var(--rojo); }
-  .horario div.hoy b{ color:#FF8A7E; }
-  @media (max-width:640px){
-    .horario{ grid-template-columns:1fr; text-align:left; gap:0; }
-    .horario div{ display:flex; justify-content:space-between; border-top:1px solid rgba(243,239,229,.2); font-size:16px; padding:9px 0; }
-    .horario div b{ margin:0; font-size:16px; margin-right:auto; }
-    .horario span + span::before{ content:"\00A0 a\00A0 "; }
-  }
-  @media (min-width:641px){ .horario span{ display:block; } }
+  /* Horario, dentro de "Dónde estamos" */
+  .visita h3{ font-weight:600; font-size:18px; margin-top:26px; }
+  .horario{ list-style:none; margin-top:8px; max-width:340px; font-variant-numeric:tabular-nums; }
+  .horario li{ display:flex; justify-content:space-between; gap:12px; padding:7px 0; border-bottom:1px solid var(--linea); }
+  .horario li.hoy{ color:var(--rojo-hondo); font-weight:600; }
 
   /* ---------- LA CARTA ---------- */
   .carta{ padding:72px 0 56px; }
@@ -178,14 +168,15 @@
   .visita .foto:nth-child(1){ grid-column:1 / span 3; transform:rotate(-1.6deg); margin-top:0; }
   .visita .foto:nth-child(2){ grid-column:4 / span 3; transform:rotate(2deg); margin-top:30px; }
   .visita address{ font-style:normal; font-size:20px; line-height:1.45; margin-top:18px; }
-  .visita ul{ list-style:none; margin-top:18px; display:grid; gap:8px; }
+  .visita .enlaces{ list-style:none; margin-top:18px; display:grid; gap:8px; }
   .visita li a{ font-weight:600; text-underline-offset:4px; }
   .visita .patio{ margin-top:22px; color:var(--gris); max-width:44ch; }
 
   footer{ background:var(--rojo); color:var(--papel); padding:40px 0 120px; }
   footer .rotulo{ color:var(--papel); }
   footer .rotulo b{ font-size:clamp(56px, 19vw, 220px); }
-  footer p{ text-align:center; margin-top:18px; font-size:15px; }
+  footer p{ text-align:center; margin-top:10px; font-size:15px; }
+  footer .lema{ font-weight:600; font-size:clamp(18px, 2.4vw, 24px); margin-top:22px; }
 
   /* ---------- BARRA DE LA BOLSA ---------- */
   .barra{
@@ -316,21 +307,14 @@
           </div>
           <p class="dato"><strong>Carrer del Vallespir, 24</strong><br>Pagas en el mostrador al recogerlo.</p>
         </div>
-        <div class="pared" aria-label="Fotos del forno">
-          <figure class="foto"><img src="img/equipo.jpg" alt="Los dos panaderos de Forno Bomba con dos panes de masa madre" width="205" height="253"><figcaption>Alberto y Francesco</figcaption></figure>
-          <figure class="foto"><img src="img/fachada.jpg" alt="La fachada de Forno Bomba con su rótulo rojo" width="205" height="275"><figcaption>Vallespir 24</figcaption></figure>
-          <figure class="foto"><img src="img/nudos.jpg" alt="Nudos de cardamomo sin hornear sobre la mesa" width="205" height="180"></figure>
-          <figure class="foto"><img src="img/crostata.jpg" alt="Una crostata sobre papel de Forno Bomba" width="205" height="253"></figure>
-          <figure class="foto"><img src="img/bun.jpg" alt="Bun de canela con azúcar glas" width="205" height="253"></figure>
+        <div class="pared" aria-label="Algunos productos del forno">
+          <figure class="foto"><img src="img/cardamomo-cafe.jpg" alt="Dos nudos de cardamomo y dos cafés sobre papel de Forno Bomba" width="720" height="960"><figcaption>Nudos de cardamomo</figcaption></figure>
+          <figure class="foto ancha"><img src="img/bun-chocolate.jpg" alt="Bun de chocolate con azúcar glas" width="800" height="417"><figcaption>Bun de chocolate</figcaption></figure>
+          <figure class="foto"><img src="img/pizza-cafe.jpg" alt="Dos porciones de pizza en bandeja y dos cafés con leche" width="720" height="964"><figcaption>Pizza en bandeja</figcaption></figure>
+          <figure class="foto"><img src="img/crostata.jpg" alt="Una crostata sobre papel de Forno Bomba" width="205" height="253"><figcaption>Crostata</figcaption></figure>
+          <figure class="foto"><img src="img/bun.jpg" alt="Bun de canela con azúcar glas" width="205" height="253"><figcaption>Bun de canela</figcaption></figure>
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="lunes" aria-labelledby="lunesTitle">
-    <div class="wrap">
-      <h2 class="titular" id="lunesTitle">Abrimos los lunes<span>(se amasa, no se descansa)</span></h2>
-      <div class="horario" id="hoursGrid"></div>
     </div>
   </section>
 
@@ -362,7 +346,9 @@
       <div>
         <h2 class="titular" id="visitaTitle">Dónde estamos<span>(en Sants, cerca de la estación)</span></h2>
         <address>Carrer del Vallespir, 24<br>08014 Barcelona</address>
-        <ul>
+        <h3>Horario</h3>
+        <ul class="horario" id="hoursGrid"></ul>
+        <ul class="enlaces">
           <li><a href="https://maps.google.com/?q=Forno+Bomba,+Carrer+del+Vallespir+24,+08014+Barcelona" target="_blank" rel="noopener">Cómo llegar</a></li>
           <li><a href="tel:+34673473647" id="telLink">Llamar al <span id="telText">673 473 647</span></a></li>
           <li><a href="https://www.instagram.com/fornobomba/" target="_blank" rel="noopener">Instagram @fornobomba</a></li>
@@ -371,7 +357,7 @@
       </div>
       <div class="pared">
         <figure class="foto"><img src="img/obrador.jpg" alt="El obrador por dentro, con la pared roja y carteles" width="205" height="253"></figure>
-        <figure class="foto"><img src="img/tomates.jpg" alt="Tomates de variedades locales en una bandeja" width="205" height="275"></figure>
+        <figure class="foto"><img src="img/fachada.jpg" alt="La fachada de Forno Bomba con su rótulo rojo" width="205" height="275"></figure>
       </div>
     </div>
   </section>
@@ -380,6 +366,7 @@
 <footer>
   <div class="wrap">
     <div class="rotulo" aria-hidden="true"><small>FORNO</small><b>BOMBA</b></div>
+    <p class="lema">Ingredientes auténticos, creaciones explosivas.</p>
     <p>Carrer del Vallespir, 24, Sants, Barcelona</p>
   </div>
 </footer>
@@ -924,7 +911,7 @@ function prettyPhone(){
 function renderHours(){
   const todayIdx = (new Date().getDay() + 6) % 7; // lunes = 0
   $("#hoursGrid").innerHTML = OPENING_HOURS.map(([d, h], i) =>
-    `<div class="${i === todayIdx ? "hoy" : ""}"><b>${i === todayIdx ? "Hoy" : d.slice(0, 3)}</b>${h.split(" a ").map(t => `<span>${t}</span>`).join("")}</div>`).join("");
+    `<li class="${i === todayIdx ? "hoy" : ""}"><span>${i === todayIdx ? d + " (hoy)" : d}</span><span>${h}</span></li>`).join("");
   $("#telText").textContent = prettyPhone();
   $("#telLink").href = `tel:+${config.phone}`;
 }

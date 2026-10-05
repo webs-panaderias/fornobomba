@@ -31,7 +31,7 @@ const DEFAULT_CONFIG = {
 };
 
 // Horario de apertura al público (solo informativo).
-// Desde que "abrimos los lunes" el lunes sigue el horario de entre semana: confírmalo con el forno.
+// El lunes abren; se ha supuesto el mismo horario que entre semana: confírmalo con el forno.
 const OPENING_HOURS = [
   ["Lunes", "8:30 a 20:00"], ["Martes", "8:30 a 20:00"], ["Miércoles", "8:30 a 20:00"], ["Jueves", "8:30 a 20:00"],
   ["Viernes", "8:30 a 20:00"], ["Sábado", "8:30 a 15:00"], ["Domingo", "9:00 a 14:00"]
@@ -50,13 +50,15 @@ const DEFAULT_CATALOG = [
   { id: "mezza",         cat: "pane",     name: "Media pagnotta",          desc: "El mismo pan, unos 400 g.",                                       price: 3.60,  unit: "pieza",   lead: 12 },
   { id: "foc-porzione",  cat: "focaccia", name: "Focaccia",                desc: "Romero, aceite de oliva y sal en escamas.",                       price: 3.20,  unit: "porción", lead: 3 },
   { id: "foc-teglia",    cat: "focaccia", name: "Focaccia, bandeja entera",desc: "Unas 8 porciones. Para comidas, fiestas y vermuts.",              price: 24.00, unit: "bandeja", lead: 24 },
+  { id: "olivas",        cat: "focaccia", name: "Pizza de tomate y olivas", desc: "Tomate, olivas verdes y orégano.",                              price: 3.50,  unit: "porción", lead: 3,  img: "img/pizza-olivas.jpg" },
   { id: "margherita",    cat: "focaccia", name: "Pizza margherita",        desc: "Tomate, fior di latte y albahaca.",                               price: 3.50,  unit: "porción", lead: 3 },
   { id: "patate",        cat: "focaccia", name: "Pizza de patata y romero",desc: "Base blanca, patata fina, romero y pimienta.",                    price: 3.50,  unit: "porción", lead: 3 },
   { id: "mortadella",    cat: "focaccia", name: "Pizza de mortadela",      desc: "Mortadela, stracciatella y pistacho.",                            price: 4.50,  unit: "porción", lead: 3 },
   { id: "teglia-intera", cat: "focaccia", name: "Pizza, bandeja entera",   desc: "Unas 8 porciones, de uno o dos sabores. Dinos cuáles en las notas.", price: 28.00, unit: "bandeja", lead: 24 },
-  { id: "cardamom",      cat: "dolci",    name: "Nudo de cardamomo",       desc: "Masa brioche anudada con cardamomo recién molido.",               price: 3.20,  unit: "unidad",  lead: 3,  img: "img/nudos.jpg" },
+  { id: "cardamom",      cat: "dolci",    name: "Nudo de cardamomo",       desc: "Masa brioche anudada con cardamomo recién molido.",               price: 3.20,  unit: "unidad",  lead: 3,  img: "img/cardamomo.jpg" },
   { id: "cinnamon",      cat: "dolci",    name: "Bun de canela",           desc: "Enrollado con mantequilla y canela, con azúcar glas por encima.", price: 3.20,  unit: "unidad",  lead: 3,  img: "img/bun.jpg" },
+  { id: "chocolate",     cat: "dolci",    name: "Bun de chocolate",        desc: "Espiral de chocolate con azúcar glas por encima.",                price: 3.50,  unit: "unidad",  lead: 3,  img: "img/bun-chocolate-mini.jpg" },
   { id: "crostata",      cat: "dolci",    name: "Crostata",                desc: "Tartaleta de masa quebrada con mermelada.",                       price: 3.80,  unit: "unidad",  lead: 3,  img: "img/crostata.jpg" },
-  { id: "box-buns",      cat: "dolci",    name: "Caja de 6 buns",          desc: "Canela y cardamomo, como prefieras. Dinos el reparto en las notas.", price: 18.00, unit: "caja", lead: 12 },
+  { id: "box-buns",      cat: "dolci",    name: "Caja de 6 buns",          desc: "Canela, cardamomo o chocolate, como prefieras. Dinos el reparto en las notas.", price: 18.00, unit: "caja", lead: 12 },
   { id: "coca-sant-joan",cat: "stagione", name: "Coca de Sant Joan",       desc: "Con piñones de aquí. Solo en junio.",                             price: 22.00, unit: "pieza",   lead: 48, img: "img/coca.jpg", hidden: true }
 ];
