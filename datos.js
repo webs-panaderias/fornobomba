@@ -3,11 +3,11 @@
    en la Google Sheet y tiene prioridad sobre estos valores por defecto. */
 /* =====================================================================
    CONFIGURACIÓN
-   SHEET_SCRIPT_URL: pega aquí la URL de la aplicación web de Code.gs.
-   Sin URL, la web funciona en modo prueba: no controla el aforo real y
-   el encargo se envía solo por WhatsApp.
+   SHEET_SCRIPT_URL: la URL de la aplicación web de Code.gs (la hoja de Google
+   del forno). Si se vacía, la web pasa a modo prueba: no controla el aforo
+   real y el encargo se envía solo por WhatsApp.
    ===================================================================== */
-const SHEET_SCRIPT_URL = "";
+const SHEET_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyppZoRJf49jfqYtZbuCSPwVwMxCn2HBOkQS_3Wkw35Ef_bx3YsgrHnrhx63CN4rJBY/exec";
 
 const DEFAULT_CONFIG = {
   phone: "34673473647",
