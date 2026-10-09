@@ -45,6 +45,16 @@ const DEFAULT_SLOT_CAPACITY = 6;
 
 // Claves de configuración que se guardan como JSON en la hoja.
 const JSON_KEYS = ["schedule", "closedDates", "catalog", "pause"];
+// Cambia con cada versión de este archivo: el panel la muestra para saber si está al día.
+const CODE_VERSION = "2026-10-09b";
+
+// Valores por defecto si el panel aún no ha guardado horario (los mismos que datos.js).
+const DEFAULT_SCHEDULE = {
+  mon: { from: "09:00", to: "20:00" }, tue: { from: "09:00", to: "20:00" }, wed: { from: "09:00", to: "20:00" },
+  thu: { from: "09:00", to: "20:00" }, fri: { from: "09:00", to: "20:00" }, sat: { from: "09:00", to: "15:00" },
+  sun: { from: "09:30", to: "14:00" }
+};
+
 // Carpeta de Google Drive donde se guardan las fotos de productos.
 const PHOTOS_FOLDER = "Forno Bomba - fotos de productos";
 const MAX_PHOTO_BYTES = 3 * 1024 * 1024;
@@ -162,7 +172,8 @@ function slotCounts(date) {
 
 function doGet(e) {
   const p = (e && e.parameter) || {};
-  if (p.action === "config") return json(loadConfig(false));
+  if (p.action === "config") { const c = loadConfig(false); c.serverVersion = CODE_VERSION; return json(c); }
+  if (p.action === "ping") return json({ success: true, version: CODE_VERSION });
   if (p.action === "slots") {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date || "")) return json({ success: false, error: "fecha" });
     return json({ success: true, date: p.date, capacity: slotCapacity(), counts: slotCounts(p.date) });
@@ -178,10 +189,14 @@ function doPost(e) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date || "") || !/^\d{2}:\d{2}$/.test(data.slot || "")) {
         return json({ success: false, error: "Falta el día o el tramo de recogida." });
       }
-      const pause = loadConfig(false).pause;
-      if (pause && pause.active) {
-        return json({ success: false, error: "pause", message: pause.message || "" });
+      const cfg = loadConfig(false);
+      if (cfg.pause && cfg.pause.active) {
+        return json({ success: false, error: "pause", message: cfg.pause.message || "" });
       }
+      // El día y el tramo se comprueban también aquí, con el horario guardado en el panel,
+      // por si la web del cliente tenía una configuración antigua en caché.
+      const invalid = checkPickup(cfg, data.date, data.slot, data.lines || []);
+      if (invalid) return json({ success: false, error: "slot", message: invalid });
       const lock = LockService.getScriptLock();
       lock.waitLock(10000);
       try {
@@ -259,6 +274,30 @@ function listOrders(from, to) {
     });
   }
   return out;
+}
+
+// Devuelve un texto con el motivo si el día/tramo no es válido; null si es correcto.
+function checkPickup(cfg, date, slot, lines) {
+  const schedule = cfg.schedule || DEFAULT_SCHEDULE;
+  const len = Number(cfg.slotMinutes) || 30;
+  const tz = Session.getScriptTimeZone();
+  const keys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  const [y, mo, d] = date.split("-").map(Number);
+  const day = schedule[keys[new Date(y, mo - 1, d).getDay()]];
+  if (!day || (cfg.closedDates || []).indexOf(date) >= 0) return "Ese día el forno no abre para encargos.";
+  const toMin = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+  const s = toMin(slot), from = toMin(day.from), to = toMin(day.to);
+  if (s < from || s + len > to || (s - from) % len !== 0) return "Ese tramo ya no está en el horario de recogida.";
+  const start = Utilities.parseDate(date + " " + slot, tz, "yyyy-MM-dd HH:mm");
+  const catalog = cfg.catalog || [];
+  const lead = lines.reduce((mx, l) => {
+    const it = catalog.find(c => c.id === l.id);
+    return Math.max(mx, it ? Number(it.lead) || 0 : 0);
+  }, 0);
+  if (start.getTime() < Date.now() + lead * 3600e3 - 10 * 60e3) return "No llegamos a tenerlo listo para ese tramo.";
+  const maxDays = Number(cfg.maxDaysAhead) || 14;
+  if (start.getTime() > Date.now() + (maxDays + 1) * 86400e3) return "Ese día queda demasiado lejos para encargar.";
+  return null;
 }
 
 // Email al forno con el encargo. Si falla (sin email, cuota de Google agotada),

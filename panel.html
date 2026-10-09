@@ -293,6 +293,11 @@
         </div>
 
         <div class="box">
+          <h3>Conexión con la hoja</h3>
+          <p id="connInfo" class="muted">Comprobando…</p>
+        </div>
+
+        <div class="box">
           <h3>Clave del panel</h3>
           <div class="row"><label for="cPw">Nueva clave</label><input type="text" id="cPw" autocomplete="off"><small>Quien tenga esta clave verá los datos de los clientes. Déjala vacía y no se pedirá clave (no recomendado).</small></div>
         </div>
@@ -307,7 +312,7 @@
 
 <div class="toast" id="toast" role="status"></div>
 
-<script src="datos.js"></script>
+<script src="datos.js?v=20261009b"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -343,6 +348,9 @@ async function api(action, extra){
 
 /* ---------- ACCESO ---------- */
 const saved = storeGet("fb_panel");
+// La URL de la web manda: si la del navegador es otra (de una prueba antigua), se sustituye,
+// para que panel y web trabajen siempre con la misma hoja.
+if(saved && SHEET_SCRIPT_URL && saved.url !== SHEET_SCRIPT_URL){ saved.url = SHEET_SCRIPT_URL; storeSet("fb_panel", saved); }
 $("#lUrl").value = (saved && saved.url) || SHEET_SCRIPT_URL || "";
 if(SHEET_SCRIPT_URL) $("#urlRow").hidden = true;
 
@@ -350,7 +358,7 @@ $("#loginForm").addEventListener("submit", async e => {
   e.preventDefault();
   $("#lErr").textContent = "";
   $("#lBtn").disabled = true; $("#lBtn").textContent = "Entrando…";
-  session = { url: $("#lUrl").value.trim(), key: $("#lKey").value };
+  session = { url: SHEET_SCRIPT_URL || $("#lUrl").value.trim(), key: $("#lKey").value };
   try{
     const r = await api("login");
     if(!r.success) throw new Error();
@@ -388,7 +396,7 @@ async function start(){
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
   document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === "view-" + b.dataset.tab));
-  if(b.dataset.tab === "config") fillConfigForm();
+  if(b.dataset.tab === "config"){ fillConfigForm(); checkConnection(); }
 });
 
 /* ---------- CONFIGURACIÓN ---------- */
@@ -446,6 +454,23 @@ function fillConfigForm(){
   renderClosed();
   renderCatalogEditor();
   $("#saveMsg").textContent = "";
+}
+
+// Versión de Code.gs que espera esta web (la misma que CODE_VERSION en Code.gs).
+const EXPECTED_SERVER = "2026-10-09b";
+async function checkConnection(){
+  const el = $("#connInfo");
+  const corta = session.url.replace(/^https:\/\/script\.google\.com\/macros\/s\//, "").slice(0, 12) + "…";
+  try{
+    const r = await (await fetch(`${session.url}?action=ping&t=${Date.now()}`, { cache: "no-store" })).json();
+    const v = r && r.version;
+    const igual = SHEET_SCRIPT_URL ? (session.url === SHEET_SCRIPT_URL ? "la misma que usa la web" : "DISTINTA de la que usa la web") : "la web está en modo prueba";
+    el.innerHTML = v === EXPECTED_SERVER
+      ? `Conectado (${esc(corta)}, ${igual}). Apps Script al día.`
+      : `Conectado (${esc(corta)}, ${igual}). <b style="color:var(--bomba-deep)">El Apps Script está desactualizado</b>: pega el último Code.gs y publica una versión nueva.`;
+  }catch(e){
+    el.innerHTML = `<b style="color:var(--bomba-deep)">No se puede conectar con la hoja.</b> Revisa que la implementación sea para "Cualquier usuario".`;
+  }
 }
 
 /* ---------- CATÁLOGO: añadir, editar, borrar y foto ---------- */

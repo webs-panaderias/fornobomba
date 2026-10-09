@@ -71,6 +71,7 @@
 
   .pausa{ display:none; background:var(--rojo); color:var(--papel); padding:12px var(--gutter); text-align:center; font-weight:600; }
   .pausa.show{ display:block; }
+  .pausa.error{ background:var(--tinta); }
 
   /* ---------- PORTADA ---------- */
   .portada{ padding:8px 0 64px; }
@@ -452,7 +453,7 @@
   </div>
 </div>
 
-<script src="datos.js"></script>
+<script src="datos.js?v=20261009b"></script>
 <script>
 const DAY_KEYS = ["sun","mon","tue","wed","thu","fri","sat"];
 const DAY_SHORT = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
@@ -754,12 +755,13 @@ function goStep(n){
 
 function updateFoot(){
   const btn = $("#nextBtn");
-  if(step === 1){ btn.textContent = "Elegir día y hora"; btn.disabled = cartCount() === 0 || config.pause.active; }
+  if(step === 1){ btn.textContent = "Elegir día y hora"; btn.disabled = cartCount() === 0 || config.pause.active || remoteState === "error"; }
   if(step === 2){ btn.textContent = pickup.slot ? "Continuar" : "Elige un tramo"; btn.disabled = !pickup.slot; }
   if(step === 3){ btn.textContent = "Hacer el encargo"; btn.disabled = false; }
 }
 
-function openOrder(){
+async function openOrder(){
+  if(remoteState === "loading"){ $("#openCartBar").textContent = "Cargando…"; await configReady; $("#openCartBar").textContent = "Elegir día y hora"; }
   if(lastOrder && step === 4){ /* reabrir tras confirmar: empezamos de nuevo */ }
   $("#orderOverlay").classList.add("show");
   $("#orderOverlay").setAttribute("aria-hidden", "false");
@@ -836,6 +838,13 @@ async function submitOrder(){
         pickup.slot = null;
         btn.disabled = false; updateFoot();
         slotNotice = "Justo se ha llenado ese tramo. Elige otro, por favor.";
+        goStep(2);
+        return;
+      } else if(r.error === "slot"){
+        slotCache = {};
+        pickup.slot = null;
+        btn.disabled = false; updateFoot();
+        slotNotice = r.message || "Ese tramo ya no está disponible. Elige otro, por favor.";
         goStep(2);
         return;
       } else if(r.error === "pause"){
@@ -919,27 +928,41 @@ function renderHours(){
 }
 function renderPause(){
   const b = $("#pauseBanner");
+  b.classList.toggle("error", remoteState === "error");
+  if(remoteState === "error"){
+    b.textContent = `Ahora mismo no podemos recibir encargos online. Llámanos al ${prettyPhone()} o vuelve a intentarlo en unos minutos.`;
+    b.classList.add("show");
+    updateFoot();
+    return;
+  }
   b.textContent = config.pause.active ? (config.pause.message || "Ahora mismo no aceptamos encargos online.") : "";
   b.classList.toggle("show", !!config.pause.active);
   renderCatalog();
   updateFoot();
 }
+// remoteState: "test" (sin servidor), "ok" o "error" (no se pudo leer la configuración del forno).
+let remoteState = SHEET_SCRIPT_URL ? "loading" : "test";
 async function loadRemoteConfig(){
   if(!SHEET_SCRIPT_URL) return;
   try{
-    const res = await fetch(`${SHEET_SCRIPT_URL}?action=config`);
+    const res = await fetch(`${SHEET_SCRIPT_URL}?action=config&t=${Date.now()}`, { cache: "no-store" });
     const r = await res.json();
+    if(!r || typeof r !== "object" || r.success === false) throw new Error("respuesta");
     ["phone","whatsappEnabled","slotMinutes","slotCapacity","maxDaysAhead","schedule","closedDates","pause","catalog"].forEach(k => {
       if(r[k] !== undefined && r[k] !== null) config[k] = r[k];
     });
-  }catch(e){ /* sin conexión: seguimos con la configuración por defecto */ }
+    remoteState = "ok";
+  }catch(e){
+    remoteState = "error";
+  }
 }
+const configReady = loadRemoteConfig();
 
 (async function init(){
   renderHours();
   renderCatalog();
   renderCartBar();
-  await loadRemoteConfig();
+  await configReady;
   // Quitamos de la cesta productos que ya no existen en el catálogo.
   Object.keys(cart).forEach(id => { if(!itemById(id)) delete cart[id]; });
   saveCart();
