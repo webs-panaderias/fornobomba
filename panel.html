@@ -365,8 +365,10 @@ $("#loginForm").addEventListener("submit", async e => {
     storeSet("fb_panel", session);
     await start();
   }catch(err){
-    if(err.message !== "auth") $("#lErr").textContent = "No se ha podido conectar. Revisa la URL y la clave.";
-    else $("#lErr").textContent = "Clave incorrecta.";
+    if(err.message === "auth") $("#lErr").textContent = "Clave incorrecta para esta hoja.";
+    else $("#lErr").innerHTML = `No se puede conectar con la hoja de Google, así que la clave no se ha llegado a comprobar.
+      Abre <a href="${esc(session.url)}?action=ping" target="_blank" rel="noopener">este enlace de prueba</a>:
+      si no muestra <code>"success":true</code>, la implementación del Apps Script no está publicada para "Cualquier usuario".`;
   }finally{
     $("#lBtn").disabled = false; $("#lBtn").textContent = "Entrar";
   }
