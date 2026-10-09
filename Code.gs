@@ -10,6 +10,9 @@
  *   pausa, catálogo...) en la hoja "Configuracion", igual para todos los dispositivos.
  * - Reparte el número de encargo de forma centralizada.
  * - Protege los datos de clientes con una clave (la del panel).
+ * - Avisa por email al forno de cada encargo nuevo (si hay un email en Configuración).
+ * - Guarda las fotos de productos que se suben desde el panel en una carpeta de
+ *   Google Drive y las comparte en modo "cualquiera con el enlace puede ver".
  *
  * CÓMO INSTALARLO (una sola vez):
  * 1. Crea una Google Sheet nueva (sheets.new) con la cuenta del forno.
@@ -22,6 +25,8 @@
  *
  * Cada vez que cambies este código: Implementar > Gestionar implementaciones >
  * lápiz > Versión: Nueva versión > Implementar (así la URL no cambia).
+ * Si Google pide permisos nuevos (enviar email, Google Drive), acéptalos:
+ * son los del aviso de encargos y las fotos de productos.
  */
 
 const ORDERS_SHEET = "Encargos";
@@ -40,6 +45,10 @@ const DEFAULT_SLOT_CAPACITY = 6;
 
 // Claves de configuración que se guardan como JSON en la hoja.
 const JSON_KEYS = ["schedule", "closedDates", "catalog", "pause"];
+// Carpeta de Google Drive donde se guardan las fotos de productos.
+const PHOTOS_FOLDER = "Forno Bomba - fotos de productos";
+const MAX_PHOTO_BYTES = 3 * 1024 * 1024;
+
 // Claves de configuración simples (texto / número / booleano).
 const PLAIN_KEYS = ["phone", "whatsappEnabled", "slotCapacity", "slotMinutes", "maxDaysAhead"];
 
@@ -96,7 +105,10 @@ function loadConfig(includeSecrets) {
     if (map[k] === undefined || map[k] === "") return;
     try { cfg[k] = JSON.parse(map[k]); } catch (e) { /* ignorar si está corrupto */ }
   });
-  if (includeSecrets) cfg.panelPassword = panelPassword();
+  if (includeSecrets) {
+    cfg.panelPassword = panelPassword();
+    cfg.notifyEmail = String(map.notifyEmail || "");
+  }
   return cfg;
 }
 
@@ -104,6 +116,8 @@ function saveConfig(cfg) {
   PLAIN_KEYS.forEach(k => { if (cfg[k] !== undefined) upsertConfigRow(k, String(cfg[k])); });
   JSON_KEYS.forEach(k => { if (cfg[k] !== undefined) upsertConfigRow(k, JSON.stringify(cfg[k])); });
   if (cfg.panelPassword !== undefined) upsertConfigRow("panelPassword", String(cfg.panelPassword));
+  // El email de avisos no se publica en la web: solo lo ve el panel.
+  if (cfg.notifyEmail !== undefined) upsertConfigRow("notifyEmail", String(cfg.notifyEmail).trim());
 }
 
 function slotCapacity() {
@@ -180,9 +194,11 @@ function doPost(e) {
           data.items || "", data.total || "", data.notes || "", "Pendiente",
           JSON.stringify(data.lines || [])
         ]);
+        lock.releaseLock();
+        notifyNewOrder(number, data);
         return json({ success: true, orderNumber: number });
       } finally {
-        lock.releaseLock();
+        try { lock.releaseLock(); } catch (e) { /* ya liberado */ }
       }
     }
 
@@ -193,6 +209,8 @@ function doPost(e) {
     if (data.action === "listOrders") return json({ success: true, orders: listOrders(data.from, data.to) });
     if (data.action === "adminConfig") return json({ success: true, config: loadConfig(true) });
     if (data.action === "saveConfig") { saveConfig(data.config || {}); return json({ success: true }); }
+    if (data.action === "lastOrder") return json({ success: true, last: lastOrder() });
+    if (data.action === "uploadPhoto") return json(uploadPhoto(data));
 
     if (data.action === "updateStatus") {
       const sheet = ordersSheet();
@@ -241,6 +259,65 @@ function listOrders(from, to) {
     });
   }
   return out;
+}
+
+// Email al forno con el encargo. Si falla (sin email, cuota de Google agotada),
+// el encargo se guarda igual: el aviso nunca bloquea un encargo.
+function notifyNewOrder(number, data) {
+  const to = String(readConfigMap().notifyEmail || "").trim();
+  if (!to) return;
+  try {
+    const [y, mo, d] = data.date.split("-").map(Number);
+    const dias = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const date = dias[new Date(y, mo - 1, d).getDay()] + " " + d + " de " + meses[mo - 1];
+    const body = [
+      "Encargo " + number + " para el " + date + " a las " + data.slot,
+      "",
+      data.items || "",
+      "",
+      "Total: " + String(data.total || "").replace(".", ",") + " € (se paga al recoger)",
+      "",
+      "Nombre: " + (data.name || ""),
+      "Teléfono: " + (data.phone || ""),
+      data.email ? "Email: " + data.email : "",
+      data.notes ? "Notas: " + data.notes : ""
+    ].filter((l, i, a) => !(l === "" && a[i - 1] === "")).join("\n");
+    const mail = {
+      to: to,
+      subject: "Nuevo encargo " + number + ": " + date + ", " + data.slot + ", " + (data.name || ""),
+      body: body,
+      name: "Encargos Forno Bomba"
+    };
+    if (data.email) mail.replyTo = data.email;
+    MailApp.sendEmail(mail);
+  } catch (err) {
+    console.error("No se pudo enviar el aviso del encargo " + number + ": " + err);
+  }
+}
+
+// Último encargo creado: el panel lo consulta cada poco para avisar de encargos nuevos.
+function lastOrder() {
+  const sheet = ordersSheet();
+  const n = sheet.getLastRow();
+  if (n < 2) return null;
+  const r = sheet.getRange(n, 1, 1, ORDER_HEADERS.length).getValues()[0];
+  return { orderNumber: r[COL.number - 1], date: dateKey(r[COL.date - 1]), slot: String(r[COL.slot - 1]), name: r[COL.name - 1] };
+}
+
+// Foto de producto subida desde el panel (ya reducida en el navegador).
+// Devuelve una URL pública para usarla en la web.
+function uploadPhoto(data) {
+  const m = /^data:(image\/(jpeg|png|webp));base64,(.+)$/.exec(String(data.dataUrl || ""));
+  if (!m) return { success: false, error: "Formato de imagen no válido." };
+  const bytes = Utilities.base64Decode(m[3]);
+  if (bytes.length > MAX_PHOTO_BYTES) return { success: false, error: "La foto pesa demasiado." };
+  const folders = DriveApp.getFoldersByName(PHOTOS_FOLDER);
+  const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(PHOTOS_FOLDER);
+  const name = String(data.name || "producto").replace(/[^\w\-]+/g, "-").slice(0, 60) + "-" + Date.now() + "." + (m[2] === "jpeg" ? "jpg" : m[2]);
+  const file = folder.createFile(Utilities.newBlob(bytes, m[1], name));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return { success: true, url: "https://lh3.googleusercontent.com/d/" + file.getId() + "=w1000" };
 }
 
 function json(obj) {

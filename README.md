@@ -30,11 +30,28 @@ Web para que los clientes encarguen pan, focaccia, pizza in teglia y buns, y los
 
 Todo esto (y precios, agotados, productos ocultos, teléfono y clave) se cambia desde el panel, sin tocar código.
 
+## Avisos de encargos nuevos
+
+- **Email:** en *Configuración → Avisos y contacto* se pone el email del forno; cada encargo nuevo llega allí
+  al momento (Google permite unos 100 emails al día con una cuenta gratuita).
+- **Panel:** si está abierto, cada 30 segundos comprueba si hay encargos nuevos; si los hay, suena y muestra un aviso.
+- **WhatsApp:** no es automático. El cliente, al terminar, puede pulsar "Enviar copia por WhatsApp" y el mensaje
+  sale desde su móvil al número del forno. Un aviso automático por WhatsApp necesitaría la API de WhatsApp Business (de pago).
+
+## Catálogo y fotos
+
+En *Configuración → Catálogo* se añaden, editan y eliminan productos, y se sube la foto de cada uno.
+Las fotos se reducen en el navegador y se guardan en la carpeta "Forno Bomba - fotos de productos" del
+Google Drive de la cuenta del Apps Script, compartidas como "cualquiera con el enlace puede ver".
+
 ## Puesta en marcha
 
 1. Crea una Google Sheet con la cuenta del forno y pega `Code.gs` en *Extensiones → Apps Script*
    (instrucciones paso a paso al principio del archivo). Implementa como aplicación web.
-2. Pega la URL obtenida en `SHEET_SCRIPT_URL`, en `datos.js`.
+2. Pega la URL obtenida en `SHEET_SCRIPT_URL`, en `datos.js`. **Sin esta URL la web no envía los encargos a la
+   hoja ni al panel**: funciona en modo prueba y solo ofrece mandarlos por WhatsApp.
+   Cada vez que cambie `Code.gs`, hay que hacer una **nueva versión** de la implementación y aceptar los permisos
+   que pida Google (email y Drive).
 3. Entra en `panel.html` con la clave `forno2026` y **cámbiala** en *Configuración → Clave del panel*.
 4. Revisa precios y productos en *Configuración → Catálogo*.
 
