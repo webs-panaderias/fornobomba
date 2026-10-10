@@ -222,6 +222,8 @@
   .line .info{ flex:1; min-width:0; }
   .line .info b{ display:block; font-weight:600; line-height:1.25; }
   .line .info span{ font-size:14px; color:var(--gris); }
+  .aviso-pausa{ background:var(--rojo); color:var(--papel); border-radius:6px; padding:14px 16px; margin-bottom:16px; font-size:16px; line-height:1.45; }
+  .aviso-pausa b{ display:block; font-size:18px; margin-bottom:2px; }
   .lead-note{ margin-top:16px; background:var(--piedra); padding:12px 14px; font-size:15px; border-left:4px solid var(--rojo); }
   .empty{ padding:26px 0; color:var(--gris); }
   .empty .btn{ margin-top:14px; }
@@ -302,7 +304,7 @@
         <div class="intro">
           <p>Pan de masa madre, focaccia y dulces hechos cada día en Sants. Encárgalo aquí y pasa a recogerlo el día y a la hora que te vaya bien.</p>
           <div class="acciones">
-            <a class="btn" href="#carta">Hacer un encargo</a>
+            <a class="btn" href="#carta" id="heroCta">Hacer un encargo</a>
             <a class="btn quiet" href="#como">Cómo funciona</a>
           </div>
           <p class="dato"><strong>Carrer del Vallespir, 24</strong><br>Pagas en el mostrador al recogerlo.</p>
@@ -391,11 +393,13 @@
 
     <div class="sheet-body" id="sheetBody">
       <div class="step-pane" data-step="1">
+        <div class="aviso-pausa" id="pauseNote" hidden></div>
         <div id="cartLines"></div>
         <div id="leadNote"></div>
       </div>
 
       <div class="step-pane" data-step="2">
+        <div class="aviso-pausa" id="pauseNote2" hidden></div>
         <p class="label">Día</p>
         <div class="days" id="days" role="group" aria-label="Día de recogida"></div>
         <p class="label">Tramo</p>
@@ -453,7 +457,7 @@
   </div>
 </div>
 
-<script src="datos.js?v=20261010"></script>
+<script src="datos.js?v=20261010b"></script>
 <script>
 const DAY_KEYS = ["sun","mon","tue","wed","thu","fri","sat"];
 const DAY_SHORT = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
@@ -765,8 +769,20 @@ function updateFoot(){
   if(step === 3){ btn.textContent = "Hacer el encargo"; btn.disabled = false; }
 }
 
+// Aviso de pausa dentro de la hoja del encargo, además de la franja de arriba de la página.
+function renderPauseNote(){
+  const all = pausedAll(), today = pausedToday();
+  const msg = (config.pause && config.pause.message) || "";
+  const html = all
+    ? `<b>Ahora no aceptamos encargos online</b>${esc(msg || "Vuelve a intentarlo más adelante o llámanos al " + prettyPhone() + ".")}`
+    : today ? `<b>Hoy ya no aceptamos más encargos</b>${esc(msg && !/próximos días/.test(msg) ? msg + " " : "")}Puedes encargar para mañana o los días siguientes.` : "";
+  ["#pauseNote", "#pauseNote2"].forEach(sel => { $(sel).innerHTML = html; $(sel).hidden = !html; });
+  if(today) $("#pauseNote").hidden = true; // con "solo hoy" basta con avisar al elegir el día
+}
+
 async function openOrder(){
   if(remoteState === "loading"){ $("#openCartBar").textContent = "Cargando…"; await configReady; $("#openCartBar").textContent = "Elegir día y hora"; }
+  renderPauseNote();
   if(lastOrder && step === 4){ /* reabrir tras confirmar: empezamos de nuevo */ }
   $("#orderOverlay").classList.add("show");
   $("#orderOverlay").setAttribute("aria-hidden", "false");
@@ -782,6 +798,7 @@ function closeOrder(){
   renderCartBar();
 }
 $("#openCartTop").onclick = openOrder;
+$("#heroCta").addEventListener("click", e => { if(pausedAll()){ e.preventDefault(); openOrder(); } });
 $("#openCartBar").onclick = openOrder;
 $("#closeBtn").onclick = closeOrder;
 $("#doneBtn").onclick = closeOrder;
