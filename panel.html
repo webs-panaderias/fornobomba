@@ -291,7 +291,9 @@
 
         <div class="box">
           <h3>Avisos y contacto</h3>
-          <div class="row"><label for="cEmail">Email para avisos de encargos nuevos</label><input type="email" id="cEmail" placeholder="hola@fornobomba.com"><small>Os llega un email con cada encargo en cuanto el cliente lo hace. Además, este panel suena y muestra un aviso si está abierto.</small></div>
+          <div class="row"><label for="cEmail">Email para avisos de encargos nuevos</label><input type="email" id="cEmail" placeholder="hola@fornobomba.com"><small>Os llega un email con cada encargo en cuanto el cliente lo hace. Además, este panel suena y muestra un aviso si está abierto.</small>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px"><button class="btn small light" type="button" id="testEmail">Enviar email de prueba</button><span id="testEmailMsg" class="muted"></span></div>
+            <small id="lastEmail"></small></div>
           <div class="row"><label for="cPhone">WhatsApp del forno</label><input type="tel" id="cPhone" placeholder="34673473647"><small>Con prefijo de país y sin espacios. Es el número al que el cliente puede mandaros una copia desde su móvil al terminar.</small></div>
           <div class="row"><label><input type="checkbox" id="cWa"> Ofrecer al cliente el botón "Enviar copia por WhatsApp"</label><small>El mensaje lo envía el cliente si pulsa el botón; no es un aviso automático.</small></div>
         </div>
@@ -472,6 +474,8 @@ function fillConfigForm(){
   $("#cDays").value = config.maxDaysAhead;
   $("#cPhone").value = config.phone || "";
   $("#cEmail").value = config.notifyEmail || "";
+  $("#lastEmail").textContent = config.lastEmailStatus ? "Último aviso: " + config.lastEmailStatus : "";
+  $("#testEmailMsg").textContent = "";
   $("#cWa").checked = !!config.whatsappEnabled;
   $("#cPw").value = config.panelPassword || "";
   $("#schedTable").innerHTML = DAYS.map(([k, name]) => {
@@ -487,7 +491,7 @@ function fillConfigForm(){
 }
 
 // Versión de Code.gs que espera esta web (la misma que CODE_VERSION en Code.gs).
-const EXPECTED_SERVER = "2026-10-10";
+const EXPECTED_SERVER = "2026-10-10b";
 async function checkConnection(){
   const el = $("#connInfo");
   const corta = session.url.replace(/^https:\/\/script\.google\.com\/macros\/s\//, "").slice(0, 12) + "…";
@@ -601,6 +605,19 @@ function reducirFoto(file){
     img.src = url;
   });
 }
+
+$("#testEmail").onclick = async () => {
+  const email = $("#cEmail").value.trim();
+  const msg = $("#testEmailMsg");
+  msg.textContent = "Enviando…";
+  try{
+    const r = await api("testEmail", { email });
+    if(r.success) msg.textContent = `Enviado a ${email}. Si no lo ves en unos minutos, mira en spam.`;
+    else if(r.error === "Acción no reconocida") msg.textContent = "El Apps Script está desactualizado: pega el último Code.gs y publica una versión nueva.";
+    else if(/permis|authoriz|autoriz/i.test(r.error || "")) msg.textContent = "Google no ha dado permiso para enviar emails: abre el Apps Script, ejecuta la función sendTestEmail una vez y acepta los permisos.";
+    else msg.textContent = "No se ha podido enviar: " + (r.error || "error desconocido");
+  }catch(e){ if(e.message !== "auth") msg.textContent = "No se puede conectar con la hoja."; }
+};
 
 function renderClosed(){
   const list = (config.closedDates || []).slice().sort();

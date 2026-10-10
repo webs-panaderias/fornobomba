@@ -46,7 +46,7 @@ const DEFAULT_SLOT_CAPACITY = 6;
 // Claves de configuración que se guardan como JSON en la hoja.
 const JSON_KEYS = ["schedule", "closedDates", "catalog", "pause"];
 // Cambia con cada versión de este archivo: el panel la muestra para saber si está al día.
-const CODE_VERSION = "2026-10-10";
+const CODE_VERSION = "2026-10-10b";
 
 // Valores por defecto si el panel aún no ha guardado horario (los mismos que datos.js).
 const DEFAULT_SCHEDULE = {
@@ -118,6 +118,7 @@ function loadConfig(includeSecrets) {
   if (includeSecrets) {
     cfg.panelPassword = panelPassword();
     cfg.notifyEmail = String(map.notifyEmail || "");
+    cfg.lastEmailStatus = String(map.lastEmailStatus || "");
   }
   return cfg;
 }
@@ -226,6 +227,7 @@ function doPost(e) {
     if (data.action === "adminConfig") return json({ success: true, config: loadConfig(true) });
     if (data.action === "saveConfig") { saveConfig(data.config || {}); return json({ success: true }); }
     if (data.action === "lastOrder") return json({ success: true, last: lastOrder() });
+    if (data.action === "testEmail") return json(sendTestEmail(data.email));
     if (data.action === "uploadPhoto") return json(uploadPhoto(data));
 
     if (data.action === "updateStatus") {
@@ -313,7 +315,7 @@ function checkPickup(cfg, date, slot, lines) {
 // el encargo se guarda igual: el aviso nunca bloquea un encargo.
 function notifyNewOrder(number, data) {
   const to = String(readConfigMap().notifyEmail || "").trim();
-  if (!to) return;
+  if (!to) { upsertConfigRow("lastEmailStatus", stamp() + " Encargo " + number + ": no hay email de avisos configurado."); return; }
   try {
     const [y, mo, d] = data.date.split("-").map(Number);
     const dias = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
@@ -339,8 +341,30 @@ function notifyNewOrder(number, data) {
     };
     if (data.email) mail.replyTo = data.email;
     MailApp.sendEmail(mail);
+    upsertConfigRow("lastEmailStatus", stamp() + " Encargo " + number + ": email enviado a " + to + ".");
   } catch (err) {
-    console.error("No se pudo enviar el aviso del encargo " + number + ": " + err);
+    upsertConfigRow("lastEmailStatus", stamp() + " Encargo " + number + ": ERROR al enviar a " + to + ": " + err);
+  }
+}
+
+function stamp() {
+  return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM HH:mm");
+}
+
+// Email de prueba desde el panel: devuelve el error exacto si Google no deja enviarlo.
+function sendTestEmail(email) {
+  const to = String(email || readConfigMap().notifyEmail || "").trim();
+  if (!to) return { success: false, error: "Escribe primero el email de avisos." };
+  try {
+    MailApp.sendEmail({
+      to: to,
+      subject: "Prueba de avisos de encargos (Forno Bomba)",
+      body: "Si lees esto, los avisos de encargos nuevos llegarán a esta dirección.\nRevisa también que no vayan a la carpeta de spam.",
+      name: "Encargos Forno Bomba"
+    });
+    return { success: true, quota: MailApp.getRemainingDailyQuota() };
+  } catch (err) {
+    return { success: false, error: String(err) };
   }
 }
 
