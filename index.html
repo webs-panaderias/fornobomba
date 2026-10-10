@@ -453,7 +453,7 @@
   </div>
 </div>
 
-<script src="datos.js?v=20261009b"></script>
+<script src="datos.js?v=20261010"></script>
 <script>
 const DAY_KEYS = ["sun","mon","tue","wed","thu","fri","sat"];
 const DAY_SHORT = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
@@ -498,7 +498,7 @@ function controlHtml(item){
   const qty = cart[item.id] || 0;
   if(item.soldOut) return `<span class="agotado">Agotado</span>`;
   // En pausa no se puede añadir nada; lo ya añadido se puede quitar desde la cesta.
-  if(config.pause.active) return `<button class="anadir" type="button" disabled aria-label="${esc(item.name)}: encargos en pausa">Añadir</button>`;
+  if(pausedAll()) return `<button class="anadir" type="button" disabled aria-label="${esc(item.name)}: encargos en pausa">Añadir</button>`;
   if(qty > 0) return `<div class="contador" role="group" aria-label="Cantidad de ${esc(item.name)}">
       <button type="button" data-dec="${item.id}" aria-label="Quitar uno">−</button>
       <output aria-live="polite">${qty}</output>
@@ -525,7 +525,7 @@ function refreshCard(id){
 function changeQty(id, delta){
   const item = itemById(id);
   if(!item || item.soldOut) return;
-  if(delta > 0 && config.pause.active) return;
+  if(delta > 0 && pausedAll()) return;
   const q = Math.max(0, Math.min(50, (cart[id] || 0) + delta));
   if(q === 0) delete cart[id]; else cart[id] = q;
   saveCart();
@@ -580,9 +580,14 @@ const toMin = t => { const [h, m] = t.split(":").map(Number); return h*60 + m; }
 const fromMin = m => `${pad(Math.floor(m/60))}:${pad(m%60)}`;
 function parseKey(k){ const [y, m, d] = k.split("-").map(Number); return new Date(y, m-1, d); }
 
+// Pausa: "all" bloquea todos los días; "today" solo el día en que se activó.
+function pausedAll(){ const p = config.pause; return !!(p && p.active && p.scope !== "today"); }
+function pausedToday(){ const p = config.pause; return !!(p && p.active && p.scope === "today" && p.date === dateKey(new Date())); }
+
 function slotsForDate(key){
   const day = config.schedule[DAY_KEYS[parseKey(key).getDay()]];
   if(!day || (config.closedDates || []).includes(key)) return [];
+  if(pausedToday() && key === config.pause.date) return [];
   const len = config.slotMinutes || 30, out = [];
   for(let m = toMin(day.from); m + len <= toMin(day.to); m += len) out.push(fromMin(m));
   return out;
@@ -755,7 +760,7 @@ function goStep(n){
 
 function updateFoot(){
   const btn = $("#nextBtn");
-  if(step === 1){ btn.textContent = "Elegir día y hora"; btn.disabled = cartCount() === 0 || config.pause.active || remoteState === "error"; }
+  if(step === 1){ btn.textContent = "Elegir día y hora"; btn.disabled = cartCount() === 0 || pausedAll() || remoteState === "error"; }
   if(step === 2){ btn.textContent = pickup.slot ? "Continuar" : "Elige un tramo"; btn.disabled = !pickup.slot; }
   if(step === 3){ btn.textContent = "Hacer el encargo"; btn.disabled = false; }
 }
@@ -848,7 +853,12 @@ async function submitOrder(){
         goStep(2);
         return;
       } else if(r.error === "pause"){
-        config.pause = { active: true, message: r.message || "" };
+        config.pause = { active: true, message: r.message || "", scope: r.scope || "all", date: r.date || "" };
+        if(config.pause.scope === "today"){
+          slotCache = {}; pickup.slot = null; btn.disabled = false; updateFoot();
+          slotNotice = r.message || "Hoy ya no aceptamos más encargos. Elige otro día, por favor.";
+          renderPause(); goStep(2); return;
+        }
         renderPause();
         showError(r.message || "Ahora mismo no aceptamos encargos online.");
         btn.disabled = false; updateFoot();
@@ -935,8 +945,9 @@ function renderPause(){
     updateFoot();
     return;
   }
-  b.textContent = config.pause.active ? (config.pause.message || "Ahora mismo no aceptamos encargos online.") : "";
-  b.classList.toggle("show", !!config.pause.active);
+  const on = pausedAll() || pausedToday();
+  b.textContent = on ? (config.pause.message || (pausedAll() ? "Ahora mismo no aceptamos encargos online." : "Hoy ya no aceptamos más encargos. Puedes encargar para los próximos días.")) : "";
+  b.classList.toggle("show", on);
   renderCatalog();
   updateFoot();
 }

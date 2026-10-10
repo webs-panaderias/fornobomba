@@ -61,6 +61,11 @@
   .pause-btn.on{ background:var(--bomba); color:var(--paper); border-color:var(--bomba); }
   .pause-strip{ display:none; background:var(--bomba); color:var(--paper); padding:10px var(--gutter); text-align:center; font-weight:600; }
   .pause-strip.show{ display:block; }
+  .modal{ position:fixed; inset:0; z-index:60; background:rgba(43,33,26,.5); display:grid; place-items:center; padding:16px; }
+  .modal-box{ width:min(460px,100%); background:var(--paper); border:1.5px solid var(--ink); border-radius:10px; padding:20px; display:grid; gap:14px; }
+  .modal-box h3{ font-size:22px; font-weight:800; }
+  .modal-box .opt{ display:flex; gap:10px; align-items:flex-start; font-size:15px; padding:10px; border:1.5px solid var(--line); border-radius:8px; cursor:pointer; }
+  .modal-box .opt input{ margin-top:4px; }
 
   main.wrap{ padding-top:22px; padding-bottom:60px; }
   .view{ display:none; }
@@ -249,6 +254,10 @@
         <div class="box">
           <h3>Pausa</h3>
           <div class="row"><label><input type="checkbox" id="cPause"> Pausar los encargos online</label></div>
+          <div class="row" style="gap:8px">
+            <label style="font-weight:500"><input type="radio" name="cScope" value="today"> Solo para hoy: se puede seguir encargando para los próximos días</label>
+            <label style="font-weight:500"><input type="radio" name="cScope" value="all" checked> Para todos los días, hasta que la reanude</label>
+          </div>
           <div class="row"><label for="cPauseMsg">Mensaje que verán los clientes</label>
             <input type="text" id="cPauseMsg" maxlength="160" placeholder="Estamos de vacaciones hasta el día 20. ¡A presto!"></div>
         </div>
@@ -308,6 +317,19 @@
       </div>
     </section>
   </main>
+</div>
+
+<div class="modal" id="pauseModal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+    <h3 id="pmTitle">Pausar encargos</h3>
+    <label class="opt"><input type="radio" name="pmScope" value="today" checked> <span><b>Solo hoy</b><br>Nadie puede encargar para recoger hoy. Para mañana y los días siguientes, sí. Mañana se reanuda sola.</span></label>
+    <label class="opt"><input type="radio" name="pmScope" value="all"> <span><b>Todos los días</b><br>La web no acepta encargos para ningún día hasta que la reanudes.</span></label>
+    <div class="row"><label for="pmMsg">Mensaje para los clientes</label><input type="text" id="pmMsg" maxlength="160"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn small light" type="button" id="pmCancel">Cancelar</button>
+      <button class="btn small red" type="button" id="pmOk">Pausar</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast" role="status"></div>
@@ -412,32 +434,45 @@ async function loadConfig(){
 }
 
 function renderPause(){
-  const on = !!(config.pause && config.pause.active);
+  const on = pauseOn();
+  const hoy = on && config.pause.scope === "today";
   $("#pauseBtn").classList.toggle("on", on);
-  $("#pauseBtn").textContent = on ? "En pausa · reanudar" : "Pausar encargos";
+  $("#pauseBtn").textContent = on ? (hoy ? "Cerrado hoy · reanudar" : "En pausa · reanudar") : "Pausar encargos";
   $("#pauseStrip").classList.toggle("show", on);
-  if(on && config.pause.message) $("#pauseStrip").textContent = "En pausa — los clientes ven: “" + config.pause.message + "”";
-  else $("#pauseStrip").textContent = "Encargos online en pausa: la web no acepta encargos nuevos.";
+  const alcance = hoy ? "No se aceptan encargos para recoger hoy; para los próximos días, sí." : "La web no acepta encargos para ningún día.";
+  $("#pauseStrip").textContent = on ? (config.pause.message ? `${alcance} Los clientes ven: “${config.pause.message}”` : alcance) : "";
 }
 
-$("#pauseBtn").onclick = async () => {
-  const on = !(config.pause && config.pause.active);
-  let message = (config.pause && config.pause.message) || "";
-  if(on){
-    const m = prompt("Mensaje para los clientes (opcional):", message || "Hoy no aceptamos más encargos online. ¡Gracias!");
-    if(m === null) return;
-    message = m;
-  }
-  try{
-    await api("saveConfig", { config: { pause: { active: on, message } } });
-    config.pause = { active: on, message };
-    renderPause();
-    toast(on ? "Encargos en pausa" : "Encargos reanudados");
-  }catch(e){ if(e.message !== "auth") toast("No se ha podido guardar"); }
+// ¿Está la pausa en vigor ahora? Una pausa "solo hoy" de un día pasado ya no cuenta.
+function pauseOn(){
+  const p = config.pause;
+  if(!p || !p.active) return false;
+  return p.scope !== "today" || p.date === dateKey(new Date());
+}
+$("#pauseBtn").onclick = () => {
+  if(pauseOn()) return setPause({ active: false, message: config.pause.message || "" });
+  $("#pmMsg").value = (config.pause && config.pause.message) || "";
+  $("#pauseModal").hidden = false;
 };
+$("#pmCancel").onclick = () => { $("#pauseModal").hidden = true; };
+$("#pmOk").onclick = () => {
+  const scope = document.querySelector('input[name="pmScope"]:checked').value;
+  const msg = $("#pmMsg").value.trim() || (scope === "today" ? "Hoy ya no aceptamos más encargos. Puedes encargar para los próximos días." : "Ahora mismo no aceptamos encargos online. ¡Gracias!");
+  $("#pauseModal").hidden = true;
+  setPause({ active: true, scope, date: dateKey(new Date()), message: msg });
+};
+async function setPause(p){
+  try{
+    await api("saveConfig", { config: { pause: p } });
+    config.pause = p;
+    renderPause();
+    toast(p.active ? (p.scope === "today" ? "Cerrado para hoy" : "Encargos en pausa") : "Encargos reanudados");
+  }catch(e){ if(e.message !== "auth") toast("No se ha podido guardar"); }
+}
 
 function fillConfigForm(){
-  $("#cPause").checked = !!(config.pause && config.pause.active);
+  $("#cPause").checked = pauseOn();
+  document.querySelector(`input[name="cScope"][value="${(config.pause && config.pause.scope) === "today" ? "today" : "all"}"]`).checked = true;
   $("#cPauseMsg").value = (config.pause && config.pause.message) || "";
   $("#cCap").value = config.slotCapacity;
   $("#cMin").value = String(config.slotMinutes);
@@ -459,7 +494,7 @@ function fillConfigForm(){
 }
 
 // Versión de Code.gs que espera esta web (la misma que CODE_VERSION en Code.gs).
-const EXPECTED_SERVER = "2026-10-09b";
+const EXPECTED_SERVER = "2026-10-10";
 async function checkConnection(){
   const el = $("#connInfo");
   const corta = session.url.replace(/^https:\/\/script\.google\.com\/macros\/s\//, "").slice(0, 12) + "…";
@@ -613,7 +648,7 @@ $("#saveCfg").onclick = async () => {
   if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ $("#saveMsg").textContent = "Revisa el email de avisos."; return; }
   config.catalog.forEach(it => { delete it._nuevo; it.name = it.name.trim(); it.desc = String(it.desc || "").trim(); });
   const next = {
-    pause: { active: $("#cPause").checked, message: $("#cPauseMsg").value.trim() },
+    pause: { active: $("#cPause").checked, scope: document.querySelector('input[name="cScope"]:checked').value, date: dateKey(new Date()), message: $("#cPauseMsg").value.trim() },
     slotCapacity: Math.max(1, parseInt($("#cCap").value, 10) || 1),
     slotMinutes: parseInt($("#cMin").value, 10),
     maxDaysAhead: Math.max(1, parseInt($("#cDays").value, 10) || 14),
@@ -729,7 +764,7 @@ function render(){
   $("#kCount").textContent = active.length;
   $("#kPending").textContent = active.filter(o => o.status === "Pendiente").length;
   $("#kReady").textContent = active.filter(o => o.status === "Preparado").length;
-  $("#kTotal").textContent = fmt(active.reduce((s, o) => s + (parseFloat(String(o.total).replace(",", ".")) || 0), 0));
+  $("#kTotal").textContent = fmt(active.reduce((s, o) => s + orderTotal(o), 0));
 
   // Producción del día: suma de cada producto (sin cancelados).
   const prod = {};
@@ -769,13 +804,22 @@ function prettyPhone(digits){
   return digits || "";
 }
 
+// Importe de un encargo: el guardado si es un número; si no (encargos antiguos en los que
+// la hoja convirtió el total en fecha), la suma de sus productos.
+function orderTotal(o){
+  if(typeof o.total === "number" && isFinite(o.total)) return o.total;
+  const t = String(o.total == null ? "" : o.total).trim();
+  if(/^[\d.,]+$/.test(t)) return parseFloat(t.replace(",", ".")) || 0;
+  return (o.lines || []).reduce((s, l) => s + (Number(l.qty) || 0) * (Number(l.price) || 0), 0);
+}
+
 function orderCard(o){
   const phone = String(o.phone || "").replace(/[^\d+]/g, "");
   return `<article class="order" data-status="${esc(o.status)}">
     <div class="h"><b>#${esc(o.orderNumber)}</b><strong>${esc(o.name)}</strong>${phone ? `<a href="tel:${esc(phone)}">${esc(prettyPhone(o.phone))}</a>` : ""}</div>
     <pre>${esc(o.items)}</pre>
     ${o.notes ? `<div class="notes">📝 ${esc(o.notes)}</div>` : ""}
-    <div class="f"><span class="total">${fmt(String(o.total).replace(",", "."))}</span>
+    <div class="f"><span class="total">${fmt(orderTotal(o))}</span>
       ${STATUSES.map(s => `<button type="button" class="st" data-num="${esc(o.orderNumber)}" data-st="${s}" aria-pressed="${o.status === s}">${s}</button>`).join("")}
     </div>
   </article>`;

@@ -30,6 +30,12 @@ Web para que los clientes encarguen pan, focaccia, pizza in teglia y buns, y los
 
 Todo esto (y precios, agotados, productos ocultos, teléfono y clave) se cambia desde el panel, sin tocar código.
 
+## Pausa
+
+El botón **Pausar encargos** del panel tiene dos modos:
+- **Solo hoy:** nadie puede encargar para recoger hoy, pero sí para los días siguientes. Al día siguiente se reanuda sola.
+- **Todos los días:** la web no acepta encargos hasta que se reanude.
+
 ## Avisos de encargos nuevos
 
 - **Email:** en *Configuración → Avisos y contacto* se pone el email del forno; cada encargo nuevo llega allí

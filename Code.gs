@@ -46,7 +46,7 @@ const DEFAULT_SLOT_CAPACITY = 6;
 // Claves de configuración que se guardan como JSON en la hoja.
 const JSON_KEYS = ["schedule", "closedDates", "catalog", "pause"];
 // Cambia con cada versión de este archivo: el panel la muestra para saber si está al día.
-const CODE_VERSION = "2026-10-09b";
+const CODE_VERSION = "2026-10-10";
 
 // Valores por defecto si el panel aún no ha guardado horario (los mismos que datos.js).
 const DEFAULT_SCHEDULE = {
@@ -190,8 +190,8 @@ function doPost(e) {
         return json({ success: false, error: "Falta el día o el tramo de recogida." });
       }
       const cfg = loadConfig(false);
-      if (cfg.pause && cfg.pause.active) {
-        return json({ success: false, error: "pause", message: cfg.pause.message || "" });
+      if (pauseBlocks(cfg.pause, data.date)) {
+        return json({ success: false, error: "pause", message: (cfg.pause && cfg.pause.message) || "", scope: cfg.pause.scope || "all", date: cfg.pause.date || "" });
       }
       // El día y el tramo se comprueban también aquí, con el horario guardado en el panel,
       // por si la web del cliente tenía una configuración antigua en caché.
@@ -206,7 +206,8 @@ function doPost(e) {
         ordersSheet().appendRow([
           new Date(), number, "'" + data.date, "'" + data.slot,
           data.name || "", "'" + (data.phone || ""), data.email || "",
-          data.items || "", data.total || "", data.notes || "", "Pendiente",
+          // El total va como número: como texto ("16.10") Sheets en español lo convierte en fecha.
+          data.items || "", Math.round((Number(data.total) || 0) * 100) / 100, data.notes || "", "Pendiente",
           JSON.stringify(data.lines || [])
         ]);
         lock.releaseLock();
@@ -267,13 +268,21 @@ function listOrders(from, to) {
       phone: String(r[COL.phone - 1]),
       email: r[COL.email - 1],
       items: r[COL.items - 1],
-      total: r[COL.total - 1],
+      total: orderTotal(r[COL.total - 1], lines),
       notes: r[COL.notes - 1],
       status: r[COL.status - 1],
       lines: lines
     });
   }
   return out;
+}
+
+// Pausa: "all" = no se aceptan encargos para ningún día; "today" = solo para recoger
+// el día en que se activó (desde el día siguiente deja de aplicarse sola).
+function pauseBlocks(pause, pickupDate) {
+  if (!pause || !pause.active) return false;
+  if (pause.scope === "today") return pickupDate === pause.date;
+  return true;
 }
 
 // Devuelve un texto con el motivo si el día/tramo no es válido; null si es correcto.
@@ -357,6 +366,15 @@ function uploadPhoto(data) {
   const file = folder.createFile(Utilities.newBlob(bytes, m[1], name));
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   return { success: true, url: "https://lh3.googleusercontent.com/d/" + file.getId() + "=w1000" };
+}
+
+// Encargos guardados antes de este arreglo pueden tener el total convertido en fecha:
+// en ese caso se recalcula con los productos del encargo.
+function orderTotal(value, lines) {
+  if (typeof value === "number" && !isNaN(value)) return value;
+  const n = parseFloat(String(value).replace(",", "."));
+  if (!(value instanceof Date) && !isNaN(n) && /^\s*[\d.,]+\s*$/.test(String(value))) return n;
+  return Math.round(lines.reduce((s, l) => s + (Number(l.qty) || 0) * (Number(l.price) || 0), 0) * 100) / 100;
 }
 
 function json(obj) {
