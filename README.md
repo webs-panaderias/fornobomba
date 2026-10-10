@@ -56,8 +56,12 @@ Google Drive de la cuenta del Apps Script, compartidas como "cualquiera con el e
    (instrucciones paso a paso al principio del archivo). Implementa como aplicación web.
 2. Pega la URL obtenida en `SHEET_SCRIPT_URL`, en `datos.js`. **Sin esta URL la web no envía los encargos a la
    hoja ni al panel**: funciona en modo prueba y solo ofrece mandarlos por WhatsApp.
-   Cada vez que cambie `Code.gs`, hay que hacer una **nueva versión** de la implementación y aceptar los permisos
-   que pida Google (email y Drive).
+   Cada vez que cambie `Code.gs`, hay que hacer una **nueva versión** de la implementación (la misma, no una
+   implementación nueva, o cambia la URL).
+   **Permisos de email y Drive:** después de pegar el código, ejecuta una vez la función `sendTestEmail` desde el
+   editor y acepta los permisos. Si no se hace, los encargos llegan pero los avisos por email fallan; el error queda
+   en la hoja, pestaña *Configuracion*, fila `lastEmailStatus`. Para comprobarlo: panel, *Configuración → Avisos y
+   contacto → Enviar email de prueba*.
 3. Entra en `panel.html` con la clave `forno2026` y **cámbiala** en *Configuración → Clave del panel*.
 4. Revisa precios y productos en *Configuración → Catálogo*.
 
