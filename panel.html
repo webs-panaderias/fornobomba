@@ -253,13 +253,8 @@
       <div class="cfg">
         <div class="box">
           <h3>Pausa</h3>
-          <div class="row"><label><input type="checkbox" id="cPause"> Pausar los encargos online</label></div>
-          <div class="row" style="gap:8px">
-            <label style="font-weight:500"><input type="radio" name="cScope" value="today"> Solo para hoy: se puede seguir encargando para los próximos días</label>
-            <label style="font-weight:500"><input type="radio" name="cScope" value="all" checked> Para todos los días, hasta que la reanude</label>
-          </div>
-          <div class="row"><label for="cPauseMsg">Mensaje que verán los clientes</label>
-            <input type="text" id="cPauseMsg" maxlength="160" placeholder="Estamos de vacaciones hasta el día 20. ¡A presto!"></div>
+          <p id="pauseInfo" class="muted"></p>
+          <p class="muted" style="margin-top:8px">Se activa y se quita con el botón <b>Pausar encargos</b> de arriba a la derecha, que está siempre a mano.</p>
         </div>
 
         <div class="box">
@@ -439,6 +434,7 @@ function renderPause(){
   $("#pauseBtn").classList.toggle("on", on);
   $("#pauseBtn").textContent = on ? (hoy ? "Cerrado hoy · reanudar" : "En pausa · reanudar") : "Pausar encargos";
   $("#pauseStrip").classList.toggle("show", on);
+  $("#pauseInfo").textContent = on ? (hoy ? "Ahora: cerrado solo para hoy." : "Ahora: en pausa para todos los días.") + (config.pause.message ? ` Mensaje: “${config.pause.message}”` : "") : "Ahora: la web acepta encargos.";
   const alcance = hoy ? "No se aceptan encargos para recoger hoy; para los próximos días, sí." : "La web no acepta encargos para ningún día.";
   $("#pauseStrip").textContent = on ? (config.pause.message ? `${alcance} Los clientes ven: “${config.pause.message}”` : alcance) : "";
 }
@@ -471,9 +467,6 @@ async function setPause(p){
 }
 
 function fillConfigForm(){
-  $("#cPause").checked = pauseOn();
-  document.querySelector(`input[name="cScope"][value="${(config.pause && config.pause.scope) === "today" ? "today" : "all"}"]`).checked = true;
-  $("#cPauseMsg").value = (config.pause && config.pause.message) || "";
   $("#cCap").value = config.slotCapacity;
   $("#cMin").value = String(config.slotMinutes);
   $("#cDays").value = config.maxDaysAhead;
@@ -648,7 +641,6 @@ $("#saveCfg").onclick = async () => {
   if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ $("#saveMsg").textContent = "Revisa el email de avisos."; return; }
   config.catalog.forEach(it => { delete it._nuevo; it.name = it.name.trim(); it.desc = String(it.desc || "").trim(); });
   const next = {
-    pause: { active: $("#cPause").checked, scope: document.querySelector('input[name="cScope"]:checked').value, date: dateKey(new Date()), message: $("#cPauseMsg").value.trim() },
     slotCapacity: Math.max(1, parseInt($("#cCap").value, 10) || 1),
     slotMinutes: parseInt($("#cMin").value, 10),
     maxDaysAhead: Math.max(1, parseInt($("#cDays").value, 10) || 14),
