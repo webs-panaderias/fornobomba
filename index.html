@@ -275,7 +275,14 @@
   .ticket .numero b{ display:block; color:var(--tinta); font-size:52px; font-weight:700; line-height:1; font-variant-numeric:tabular-nums; margin-top:4px; }
   .ticket .when{ margin-top:18px; font-size:17px; }
   .ticket .when b{ display:block; font-size:21px; font-weight:600; }
-  .ticket .items{ text-align:left; margin-top:18px; padding-top:14px; border-top:1.5px dashed var(--tinta); font-size:15px; white-space:pre-line; }
+  .ticket .gracias{ font-size:24px; font-weight:700; margin-top:16px; line-height:1.2; }
+  .ticket .resumen{ text-align:left; margin-top:18px; padding-top:14px; border-top:1.5px dashed var(--tinta); }
+  .ticket .resumen h4{ font-size:15px; font-weight:600; color:var(--gris); margin-bottom:6px; }
+  .ticket .resumen ul{ list-style:none; }
+  .ticket .resumen li, .ticket .resumen .tot{ display:flex; justify-content:space-between; gap:12px; font-size:15px; padding:4px 0; font-variant-numeric:tabular-nums; }
+  .ticket .resumen .tot{ border-top:1px solid var(--linea); margin-top:6px; padding-top:8px; font-size:17px; }
+  .ticket .resumen .notas{ font-size:14px; color:var(--gris); margin-top:8px; }
+  .ticket .pronto{ font-family:var(--rotulo); color:var(--rojo); font-size:26px; margin-top:18px; line-height:1.1; }
   .confirm-actions{ display:grid; gap:8px; margin-top:14px; }
   .confirm-actions .btn{ width:100%; }
 </style>
@@ -438,9 +445,16 @@
       <div class="step-pane" data-step="4">
         <div class="ticket">
           <div class="sello" aria-hidden="true"><small>FORNO</small><b>BOMBA</b></div>
+          <h3 class="gracias" id="tThanks">¡Gracias por tu pedido!</h3>
           <p class="numero">Tu número de encargo<b id="tNumber">000</b></p>
-          <p class="when"><b id="tDay"></b><span id="tSlot"></span><br>Carrer del Vallespir, 24. Pagas al recoger.</p>
-          <div class="items" id="tItems"></div>
+          <p class="when">Recogida el<b id="tDay"></b><span id="tSlot"></span><br>Carrer del Vallespir, 24. Pagas al recoger.</p>
+          <div class="resumen">
+            <h4>Resumen del pedido</h4>
+            <ul id="tItems"></ul>
+            <p class="tot"><span>Total</span><b id="tTotal"></b></p>
+            <p class="notas" id="tNotes" hidden></p>
+          </div>
+          <p class="pronto">¡Nos vemos pronto!</p>
         </div>
         <div class="confirm-actions">
           <button class="btn quiet" type="button" id="icsBtn">Añadir al calendario</button>
@@ -457,7 +471,7 @@
   </div>
 </div>
 
-<script src="datos.js?v=20261010b"></script>
+<script src="datos.js?v=20261011"></script>
 <script>
 const DAY_KEYS = ["sun","mon","tue","wed","thu","fri","sat"];
 const DAY_SHORT = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
@@ -745,7 +759,7 @@ function renderRecap(){
   }
 }
 
-const TITLES = { 1: "Tu encargo", 2: "¿Cuándo pasas?", 3: "Tus datos", 4: "Encargo hecho" };
+const TITLES = { 1: "Tu encargo", 2: "¿Cuándo pasas?", 3: "Tus datos", 4: "Pedido confirmado" };
 function goStep(n){
   step = n;
   document.querySelectorAll(".step-pane").forEach(p => p.classList.toggle("on", Number(p.dataset.step) === n));
@@ -893,7 +907,7 @@ async function submitOrder(){
   }
 
   storeSet("fb_customer", { name: data.name, phone: data.phone, email: data.email });
-  lastOrder = { number, date: pickup.date, slot: pickup.slot, itemsText, total, ...data };
+  lastOrder = { number, date: pickup.date, slot: pickup.slot, itemsText, lines, total, ...data };
   cart = {}; saveCart();
   delete slotCache[pickup.date];
   renderCatalog(); renderCartBar();
@@ -904,10 +918,15 @@ async function submitOrder(){
 
 function showConfirmation(){
   const o = lastOrder;
+  const nombre = String(o.name || "").trim().split(/\s+/)[0];
+  $("#tThanks").textContent = nombre ? `¡Gracias por tu pedido, ${nombre}!` : "¡Gracias por tu pedido!";
   $("#tNumber").textContent = o.number;
-  $("#tDay").textContent = longDate(o.date);
+  $("#tDay").textContent = longDate(o.date).toLowerCase();
   $("#tSlot").textContent = `de ${slotLabel(o.slot).replace(" – ", " a ")}`;
-  $("#tItems").textContent = `${o.itemsText}\n\nTotal: ${fmt(o.total)}`;
+  $("#tItems").innerHTML = o.lines.map(l => `<li><span>${l.qty} × ${esc(l.name)}</span><span>${fmt(l.price * l.qty)}</span></li>`).join("");
+  $("#tTotal").textContent = fmt(o.total);
+  $("#tNotes").textContent = o.notes ? `Notas: ${o.notes}` : "";
+  $("#tNotes").hidden = !o.notes;
   const msg = [
     `Encargo ${o.number}, Forno Bomba`,
     `Recogida: ${longDate(o.date)}, ${slotLabel(o.slot)}`,
