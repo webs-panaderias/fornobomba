@@ -6,7 +6,7 @@ Web para que los clientes encarguen pan, focaccia, pizza in teglia y buns, y los
 | Archivo | Para quién | Qué hace |
 |---|---|---|
 | `index.html` | Clientes | Catálogo y encargo en 3 pasos: cesta → día y tramo → datos. Ticket con número, botón para añadirlo al calendario y copia por WhatsApp. |
-| `panel.html` | Obrador | Encargos de cada día ordenados por tramo, lista "Para hornear" (imprimible), estados Pendiente / Preparado / Recogido / Cancelado, pausa rápida y configuración. |
+| `panel.html` | Obrador | Encargos de cada día ordenados por tramo, lista "Para hornear" con lo que falta por preparar (imprimible), estados Pendiente / Preparado / Recogido / Cancelado, pausa rápida y configuración. |
 | `datos.js` | Los dos | URL del Apps Script, catálogo y configuración por defecto. |
 | `Code.gs` | Google Apps Script | Guarda encargos y configuración en una Google Sheet, reparte números y **controla el aforo por tramo** (aunque dos clientes encarguen a la vez). |
 

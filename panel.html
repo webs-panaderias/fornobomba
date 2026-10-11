@@ -316,7 +316,7 @@
         <div class="box">
           <h3>Conexión con la hoja</h3>
           <p id="connInfo" class="muted">Comprobando…</p>
-          <p class="muted" style="margin-top:6px;font-size:13px">Versión del panel: 2026-10-11</p>
+          <p class="muted" style="margin-top:6px;font-size:13px">Versión del panel: 2026-10-11b</p>
         </div>
 
         <div class="box">
@@ -832,14 +832,16 @@ function render(){
   $("#kReady").textContent = active.filter(o => o.status === "Preparado").length;
   $("#kTotal").textContent = fmt(active.reduce((s, o) => s + orderTotal(o), 0));
 
-  // Producción del día: suma de cada producto (sin cancelados).
+  // Para hornear: suma de cada producto de los encargos aún pendientes. Al marcar uno
+  // como preparado (o recogido), sus productos se descuentan.
   const prod = {};
-  active.forEach(o => (o.lines || []).forEach(l => { prod[l.name] = (prod[l.name] || 0) + Number(l.qty || 0); }));
+  const pending = active.filter(o => o.status === "Pendiente");
+  pending.forEach(o => (o.lines || []).forEach(l => { prod[l.name] = (prod[l.name] || 0) + Number(l.qty || 0); }));
   const order = (config && config.catalog || DEFAULT_CATALOG).map(i => i.name);
   const names = Object.keys(prod).sort((a, b) => (order.indexOf(a) + 1 || 999) - (order.indexOf(b) + 1 || 999));
   $("#prodList").innerHTML = names.length
     ? names.map(n => `<li><b>${prod[n]}</b><span>${esc(n)}</span></li>`).join("")
-    : `<li class="muted">Nada encargado para este día.</li>`;
+    : `<li class="muted">${active.length ? "Todo preparado. ¡Bravi!" : "Nada encargado para este día."}</li>`;
 
   const hide = $("#hideDone").checked;
   const visible = orders.filter(o => !hide || (o.status !== "Recogido" && o.status !== "Cancelado"));
