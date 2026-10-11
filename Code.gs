@@ -46,7 +46,7 @@ const DEFAULT_SLOT_CAPACITY = 6;
 // Claves de configuración que se guardan como JSON en la hoja.
 const JSON_KEYS = ["schedule", "closedDates", "catalog", "pause"];
 // Cambia con cada versión de este archivo: el panel la muestra para saber si está al día.
-const CODE_VERSION = "2026-10-10b";
+const CODE_VERSION = "2026-10-11";
 
 // Valores por defecto si el panel aún no ha guardado horario (los mismos que datos.js).
 const DEFAULT_SCHEDULE = {
@@ -213,6 +213,7 @@ function doPost(e) {
         ]);
         lock.releaseLock();
         notifyNewOrder(number, data);
+        confirmToCustomer(number, data);
         return json({ success: true, orderNumber: number });
       } finally {
         try { lock.releaseLock(); } catch (e) { /* ya liberado */ }
@@ -344,6 +345,66 @@ function notifyNewOrder(number, data) {
     upsertConfigRow("lastEmailStatus", stamp() + " Encargo " + number + ": email enviado a " + to + ".");
   } catch (err) {
     upsertConfigRow("lastEmailStatus", stamp() + " Encargo " + number + ": ERROR al enviar a " + to + ": " + err);
+  }
+}
+
+// Dirección del forno para el email al cliente (con enlace a Google Maps).
+const SHOP_ADDRESS = "Carrer del Vallespir, 24, 08014 Barcelona";
+const SHOP_MAPS = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("Forno Bomba, Carrer del Vallespir 24, Barcelona");
+
+function fechaLarga(date) {
+  const [y, mo, d] = date.split("-").map(Number);
+  const dias = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  return dias[new Date(y, mo - 1, d).getDay()] + " " + d + " de " + meses[mo - 1];
+}
+function finTramo(slot) {
+  const len = Number(readConfigMap().slotMinutes) || 30;
+  const [h, m] = slot.split(":").map(Number);
+  const t = h * 60 + m + len;
+  return ("0" + Math.floor(t / 60)).slice(-2) + ":" + ("0" + (t % 60)).slice(-2);
+}
+const euros = n => (Math.round((Number(n) || 0) * 100) / 100).toFixed(2).replace(".", ",") + " €";
+const escHtml = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// Email de confirmación al cliente, solo si dejó su email. Si falla, el encargo sigue guardado.
+function confirmToCustomer(number, data) {
+  const to = String(data.email || "").trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return;
+  try {
+    const nombre = String(data.name || "").trim().split(/\s+/)[0];
+    const cuando = fechaLarga(data.date) + ", de " + data.slot + " a " + finTramo(data.slot);
+    const lines = data.lines || [];
+    const filas = lines.map(l => '<tr><td style="padding:4px 0">' + l.qty + " × " + escHtml(l.name) + '</td><td style="padding:4px 0;text-align:right">' + euros(l.qty * l.price) + "</td></tr>").join("");
+    const html =
+      '<div style="font-family:Arial,sans-serif;color:#2B211A;max-width:520px;margin:auto">' +
+      '<p style="color:#EE3325;font-weight:bold;letter-spacing:4px;margin:0">FORNO</p>' +
+      '<p style="color:#EE3325;font-size:32px;font-weight:900;margin:0 0 16px">BOMBA</p>' +
+      "<h2 style=\"margin:0 0 12px\">¡Gracias por tu pedido" + (nombre ? ", " + escHtml(nombre) : "") + "!</h2>" +
+      "<p>Tu número de encargo es <b style=\"font-size:20px\">" + number + "</b>.</p>" +
+      "<p>Recogida el <b>" + cuando + "</b><br>" +
+      '<a href="' + SHOP_MAPS + '" style="color:#C9281C">' + SHOP_ADDRESS + "</a><br>Pagas en el mostrador al recogerlo.</p>" +
+      '<h3 style="margin:20px 0 6px;font-size:16px">Resumen del pedido</h3>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:15px">' + filas +
+      '<tr><td style="padding:8px 0;border-top:1px solid #ccc"><b>Total</b></td><td style="padding:8px 0;border-top:1px solid #ccc;text-align:right"><b>' + euros(data.total) + "</b></td></tr></table>" +
+      (data.notes ? '<p style="color:#6F6352">Notas: ' + escHtml(data.notes) + "</p>" : "") +
+      '<p style="color:#EE3325;font-size:22px;font-weight:900;margin-top:24px">¡Nos vemos pronto!</p></div>';
+    const texto = [
+      "¡Gracias por tu pedido" + (nombre ? ", " + nombre : "") + "!",
+      "Tu número de encargo es " + number + ".",
+      "Recogida el " + cuando + " en " + SHOP_ADDRESS + " (" + SHOP_MAPS + "). Pagas al recoger.",
+      "", "Resumen del pedido:",
+      lines.map(l => l.qty + " × " + l.name + ": " + euros(l.qty * l.price)).join("\n"),
+      "Total: " + euros(data.total),
+      data.notes ? "Notas: " + data.notes : "",
+      "", "¡Nos vemos pronto!"
+    ].join("\n");
+    const mail = { to: to, subject: "Tu encargo " + number + " en Forno Bomba: " + cuando, body: texto, htmlBody: html, name: "Forno Bomba" };
+    const forno = String(readConfigMap().notifyEmail || "").trim();
+    if (forno) mail.replyTo = forno;
+    MailApp.sendEmail(mail);
+  } catch (err) {
+    upsertConfigRow("lastEmailStatus", stamp() + " Encargo " + number + ": ERROR al enviar la confirmación al cliente (" + to + "): " + err);
   }
 }
 

@@ -40,6 +40,12 @@ El botón **Pausar encargos** del panel tiene dos modos:
 
 - **Email:** en *Configuración → Avisos y contacto* se pone el email del forno; cada encargo nuevo llega allí
   al momento (Google permite unos 100 emails al día con una cuenta gratuita).
+- **Email al cliente:** si el cliente escribe su email, recibe un correo con el número de encargo, el día y tramo
+  de recogida, la dirección con enlace a Maps y el resumen del pedido. Si contesta, la respuesta va al email del forno.
+- **Próximos 7 días:** bajo la fecha, el panel muestra hoy y los 6 días siguientes con cuántos encargos tiene cada uno
+  (sin cancelados). Pulsando un día se abre su lista.
+- **Avisar al cliente:** en cada encargo, el teléfono abre WhatsApp con el mensaje "Tu pedido #… de Forno Bomba está
+  preparado y listo para que lo recojas en…" con la dirección de Maps; solo hay que pulsar enviar. Al lado, *Llamar*.
 - **Panel:** si está abierto, cada 30 segundos comprueba si hay encargos nuevos; si los hay, suena y muestra un aviso.
 - **WhatsApp:** no es automático. El cliente, al terminar, puede pulsar "Enviar copia por WhatsApp" y el mensaje
   sale desde su móvil al número del forno. Un aviso automático por WhatsApp necesitaría la API de WhatsApp Business (de pago).

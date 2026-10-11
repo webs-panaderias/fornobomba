@@ -111,7 +111,19 @@
   .order .h{ display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
   .order .h b{ font-size:20px; font-weight:800; }
   .order .h strong{ font-weight:700; font-size:16px; }
-  .order .h a{ margin-left:auto; font-weight:700; color:var(--ink); }
+  .order .h .tel{ margin-left:auto; display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
+  .order .h .wa{ font-weight:700; color:var(--ink); text-decoration:none; border-bottom:2px solid var(--pistacchio); }
+  .order .h .wa::before{ content:"WhatsApp · "; font-size:12px; font-weight:600; color:var(--muted); }
+  .order .h .call{ font-size:13px; color:var(--muted); }
+  .week{ display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:6px; margin-bottom:16px; }
+  .week button{ background:var(--paper); border:1.5px solid var(--line); border-radius:8px; padding:8px 4px; display:grid; gap:2px; justify-items:center; font:inherit; color:var(--muted); cursor:pointer; min-width:0; }
+  .week button small{ font-size:12px; font-weight:600; text-transform:capitalize; }
+  .week button b{ font-size:20px; font-weight:800; line-height:1; color:var(--line); }
+  .week button.has{ border-color:var(--ink); color:var(--ink); }
+  .week button.has b{ color:var(--bomba-deep); }
+  .week button[aria-current="true"]{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .week button[aria-current="true"] b{ color:var(--paper); }
+  .week-t{ font-size:13px; font-weight:700; color:var(--muted); margin:0 0 6px; }
   .order pre{ font-family:inherit; white-space:pre-wrap; font-size:14.5px; }
   .order .notes{ background:#FFF3C9; border-radius:10px; padding:8px 10px; font-size:14px; }
   .order .f{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
@@ -168,7 +180,7 @@
   .toast.show{ opacity:1; }
 
   @media print{
-    header, .daybar .nav, .toolbar, .kpis, .order .f .st, .pause-strip, .box h3 .btn{ display:none !important; }
+    header, .daybar .nav, .toolbar, .kpis, .order .f .st, .pause-strip, .box h3 .btn, .week, .week-t, .order .h .call{ display:none !important; }
     body{ background:#fff; }
     .cols{ grid-template-columns:1fr; }
     .order, .box{ break-inside:avoid; }
@@ -224,6 +236,9 @@
           <input type="date" id="dayPick" aria-label="Elegir día">
         </div>
       </div>
+
+      <p class="week-t" id="weekTitle">Encargos de los próximos 7 días</p>
+      <div class="week" id="week" aria-label="Encargos de los próximos 7 días"></div>
 
       <div class="kpis">
         <div class="kpi"><span>Encargos</span><b id="kCount">0</b></div>
@@ -301,7 +316,7 @@
         <div class="box">
           <h3>Conexión con la hoja</h3>
           <p id="connInfo" class="muted">Comprobando…</p>
-          <p class="muted" style="margin-top:6px;font-size:13px">Versión del panel: 2026-10-10b</p>
+          <p class="muted" style="margin-top:6px;font-size:13px">Versión del panel: 2026-10-11</p>
         </div>
 
         <div class="box">
@@ -492,7 +507,7 @@ function fillConfigForm(){
 }
 
 // Versión de Code.gs que espera esta web (la misma que CODE_VERSION en Code.gs).
-const EXPECTED_SERVER = "2026-10-10b";
+const EXPECTED_SERVER = "2026-10-11";
 async function checkConnection(){
   const el = $("#connInfo");
   const corta = session.url.replace(/^https:\/\/script\.google\.com\/macros\/s\//, "").slice(0, 12) + "…";
@@ -695,6 +710,7 @@ function setDay(k){
   $("#dayTitle").innerHTML = `${esc(rel.charAt(0).toUpperCase() + rel.slice(1))}<small>${esc(d.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" }))}</small>`;
   orders = [];
   render();
+  renderWeek();
   loadOrders();
 }
 function shiftDay(n){ const d = parseKey(day); d.setDate(d.getDate() + n); setDay(dateKey(d)); }
@@ -732,7 +748,7 @@ function avisarNuevo(o){
   avisoDia = o.date;
   document.title = "Nuevo encargo · Forno Bomba";
   pitido();
-  if(o.date === day) loadOrders(true);
+  if(o.date === day) loadOrders(true); else loadWeek();
 }
 function pitido(){
   try{
@@ -763,11 +779,51 @@ async function loadOrders(silent){
     if(want !== day) return;
     orders = (r.orders || []).filter(o => o.date === want);
     render();
+    loadWeek();
     $("#updated").textContent = "Actualizado a las " + new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
   }catch(e){
     if(e.message !== "auth") $("#updated").textContent = "Sin conexión — reintentando";
   }
 }
+
+/* ---------- PRÓXIMOS 7 DÍAS ---------- */
+// Una fila con hoy y los 6 días siguientes y cuántos encargos tiene cada uno,
+// para ver de un vistazo si hay algo encargado más adelante.
+let week = {};
+function weekDays(){
+  const d = new Date(), out = [];
+  for(let i = 0; i < 7; i++){ out.push(dateKey(d)); d.setDate(d.getDate() + 1); }
+  return out;
+}
+function renderWeek(){
+  const days = weekDays(), today = days[0];
+  const total = days.reduce((s, k) => s + (week[k] || 0), 0);
+  $("#weekTitle").textContent = total
+    ? `Encargos de los próximos 7 días: ${total}`
+    : "Encargos de los próximos 7 días: ninguno todavía";
+  $("#week").innerHTML = days.map(k => {
+    const d = parseKey(k), n = week[k] || 0;
+    const name = k === today ? "Hoy" : d.toLocaleDateString("es-ES", { weekday: "short" }).replace(".", "");
+    return `<button type="button" data-day="${k}" class="${n ? "has" : ""}" aria-current="${k === day}"
+      aria-label="${esc(d.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }))}: ${n} encargo${n === 1 ? "" : "s"}">
+      <small>${esc(name)} ${d.getDate()}</small><b>${n}</b></button>`;
+  }).join("");
+}
+async function loadWeek(){
+  if(!session) return;
+  const days = weekDays();
+  try{
+    const r = await api("listOrders", { from: days[0], to: days[6] });
+    const next = {};
+    (r.orders || []).forEach(o => { if(o.status !== "Cancelado") next[o.date] = (next[o.date] || 0) + 1; });
+    week = next;
+    renderWeek();
+  }catch(e){ /* se reintenta con la siguiente actualización */ }
+}
+$("#week").addEventListener("click", e => {
+  const b = e.target.closest("[data-day]");
+  if(b && b.dataset.day !== day) setDay(b.dataset.day);
+});
 
 function render(){
   const active = orders.filter(o => o.status !== "Cancelado");
@@ -823,10 +879,24 @@ function orderTotal(o){
   return (o.lines || []).reduce((s, l) => s + (Number(l.qty) || 0) * (Number(l.price) || 0), 0);
 }
 
+// wa.me quiere el número con prefijo de país y solo cifras: 677123456 -> 34677123456.
+function waNumber(raw){
+  let d = String(raw || "").replace(/\D/g, "");
+  if(d.startsWith("00")) d = d.slice(2);
+  if(/^[6789]\d{8}$/.test(d)) d = "34" + d;
+  return d;
+}
+const SHOP_MAPS = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("Forno Bomba, Carrer del Vallespir 24, Barcelona");
+function waLink(o){
+  const nombre = String(o.name || "").trim().split(/\s+/)[0];
+  const msg = `¡Hola${nombre ? " " + nombre : ""}! Tu pedido #${o.orderNumber} de Forno Bomba está preparado y listo para que lo recojas en Carrer del Vallespir, 24 (Sants): ${SHOP_MAPS}\n\n¡Pronto nos vemos!`;
+  return `https://wa.me/${waNumber(o.phone)}?text=${encodeURIComponent(msg)}`;
+}
+
 function orderCard(o){
   const phone = String(o.phone || "").replace(/[^\d+]/g, "");
   return `<article class="order" data-status="${esc(o.status)}">
-    <div class="h"><b>#${esc(o.orderNumber)}</b><strong>${esc(o.name)}</strong>${phone ? `<a href="tel:${esc(phone)}">${esc(prettyPhone(o.phone))}</a>` : ""}</div>
+    <div class="h"><b>#${esc(o.orderNumber)}</b><strong>${esc(o.name)}</strong>${phone ? `<span class="tel"><a class="wa" href="${esc(waLink(o))}" target="_blank" rel="noopener" title="Avisar por WhatsApp de que está listo">${esc(prettyPhone(o.phone))}</a><a class="call" href="tel:${esc(phone)}">Llamar</a></span>` : ""}</div>
     <pre>${esc(o.items)}</pre>
     ${o.notes ? `<div class="notes">📝 ${esc(o.notes)}</div>` : ""}
     <div class="f"><span class="total">${fmt(orderTotal(o))}</span>
