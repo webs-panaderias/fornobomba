@@ -68,7 +68,8 @@ Google Drive de la cuenta del Apps Script, compartidas como "cualquiera con el e
    editor y acepta los permisos. Si no se hace, los encargos llegan pero los avisos por email fallan; el error queda
    en la hoja, pestaña *Configuracion*, fila `lastEmailStatus`. Para comprobarlo: panel, *Configuración → Avisos y
    contacto → Enviar email de prueba*.
-3. Entra en `panel.html` con la clave `forno2026` y **cámbiala** en *Configuración → Clave del panel*.
+3. La primera vez se crea una clave del panel al azar: está en la hoja, pestaña *Configuracion*, fila `panelPassword`.
+   Entra en `panel.html` con ella y, si quieres, cámbiala en *Configuración → Clave del panel*. La clave nunca va en el código.
 4. Revisa precios y productos en *Configuración → Catálogo*.
 
 Mientras `SHEET_SCRIPT_URL` esté vacío la web funciona en modo prueba: no hay control de aforo

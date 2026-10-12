@@ -39,8 +39,6 @@ const COL = { created: 1, number: 2, date: 3, slot: 4, name: 5, phone: 6, email:
 const CONFIG_SHEET = "Configuracion";
 const COUNTER_KEY = "nextOrderNumber";
 const FIRST_ORDER_NUMBER = 101;
-// Clave del panel mientras no se guarde otra desde Configuración. Cámbiala nada más instalar.
-const DEFAULT_PANEL_PASSWORD = "forno2026";
 const DEFAULT_SLOT_CAPACITY = 6;
 
 // Claves de configuración que se guardan como JSON en la hoja.
@@ -91,9 +89,14 @@ function upsertConfigRow(key, value) {
   sheet.appendRow([key, value]);
 }
 
+// La clave vive solo en la hoja (pestaña Configuracion, fila panelPassword), nunca en el código.
+// Si aún no hay ninguna, se crea una al azar la primera vez y se guarda ahí para consultarla.
 function panelPassword() {
   const map = readConfigMap();
-  return map.panelPassword !== undefined ? String(map.panelPassword) : DEFAULT_PANEL_PASSWORD;
+  if (map.panelPassword !== undefined) return String(map.panelPassword);
+  const nueva = Utilities.getUuid().replace(/-/g, "").slice(0, 10);
+  upsertConfigRow("panelPassword", nueva);
+  return nueva;
 }
 function isAuthorized(key) {
   const pw = panelPassword();
